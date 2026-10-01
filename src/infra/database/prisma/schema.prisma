@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "./config/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  EXPIRED
+  CANCELED
+}
+
+enum PixProvider {
+  ABACATEPAY
+  DELFINANCE
+}
+
+model Order {
+  id            String           @id @db.Uuid
+  amountInCents Int
+  status        OrderStatus      @default(PENDING_PAYMENT)
+  chargeLink    OrderChargeLink?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model OrderChargeLink {
+  orderId  String      @id @db.Uuid
+  chargeId String
+  provider PixProvider
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, chargeId])
+  @@map("order_charge_links")
+}
