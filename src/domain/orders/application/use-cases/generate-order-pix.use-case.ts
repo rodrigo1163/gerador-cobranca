@@ -53,8 +53,6 @@ export class GenerateOrderPixUseCase {
 
     await this.orderChargeLinksRepository.create(orderChargeLink)
 
-    return right({
-      pixCharge
-    })
+    return right({ pixCharge })
   }
 }

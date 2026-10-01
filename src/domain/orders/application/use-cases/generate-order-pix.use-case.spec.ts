@@ -33,9 +33,11 @@ describe('Generate order Pix', () => {
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toEqual({
-      chargeId: `charge-${order.id.toString()}`,
-      pixCopyPaste: `pix-${order.id.toString()}`,
-      qrCodeDataUrl: `data:image/png;base64,qr-${order.id.toString()}`,
+      pixCharge: {
+        chargeId: `charge-${order.id.toString()}`,
+        pixCopyPaste: `pix-${order.id.toString()}`,
+        qrCodeDataUrl: `data:image/png;base64,qr-${order.id.toString()}`,
+      },
     })
     expect(fakeGeneratePixCharge.calls).toEqual([
       {
