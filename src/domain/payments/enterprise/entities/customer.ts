@@ -1,9 +1,8 @@
-import { Entity } from "src/core/entities/entity"
-import { UniqueEntityId } from "src/core/entities/unique-entity-id"
-import { Optional } from "src/core/types/optional"
+import { Entity } from "../../../../core/entities/entity"
+import { UniqueEntityId } from "../../../../core/entities/unique-entity-id"
+import { Optional } from "../../../../core/types/optional"
 
-
-interface CustomerProps {
+export interface CustomerProps {
   name: string // Nome/razão social
   document: string // CPF/CNPJ
   email?: string // Contato e eventualmente envio da cobrança

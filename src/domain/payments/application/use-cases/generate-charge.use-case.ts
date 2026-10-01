@@ -1,19 +1,24 @@
+import { Either, left, right } from "../../../../core/either"
+import { ResourceNotFoundError } from "../../../../core/errors/errors/resource-not-found-error"
 import { Charge } from "../../enterprise/entities/charge"
 import { ChargesRepository } from "../repositories/charges-repository"
 import { CustomersRepository } from "../repositories/customers-repository"
-import { PaymentService } from "../services/payment-service"
+import { CreateChargeResponse, PaymentService } from "../services/payment-service"
 
-interface GenerateChargeRequest {
+interface GenerateChargeUseCaseRequest {
   customerId: string
   amount: number
   dueDate: Date
   description?: string
 }
 
-interface GenerateChargeResponse {
-  charge: Charge
-}
-
+type GenerateChargeUseCaseResponse = Either<
+  ResourceNotFoundError,
+  {
+    charge: Charge,
+    payment: CreateChargeResponse
+  }
+>
 export class GenerateChargeUseCase {
   constructor(
     private chargesRepository: ChargesRepository,
@@ -26,12 +31,12 @@ export class GenerateChargeUseCase {
     amount,
     dueDate,
     description,
-  }: GenerateChargeRequest): Promise<GenerateChargeResponse> {
+  }: GenerateChargeUseCaseRequest): Promise<GenerateChargeUseCaseResponse> {
 
     const customer = await this.customersRepository.findById(customerId)
 
     if (!customer) {
-      throw new Error('Customer not found')
+      return left(new ResourceNotFoundError())
     }
 
     const charge = Charge.create({
@@ -42,16 +47,8 @@ export class GenerateChargeUseCase {
     })
 
     const payment = await this.paymentService.createCharge({
-      chargeId: charge.id.toString(),
-      customer: {
-        id: customer.id.toString(),
-        name: customer.name,
-        document: customer.document,
-        email: customer.email,
-      },
-      amount: charge.amount,
-      dueDate: charge.dueDate,
-      description: charge.description,
+      orderId: charge.id.toString(),
+      amountInCents: amount * 100,
     })
 
     charge.attachPayment({
@@ -61,6 +58,9 @@ export class GenerateChargeUseCase {
 
     await this.chargesRepository.create(charge)
 
-    return { charge }
+    return right({
+      charge,
+      payment
+    })
   }
 }

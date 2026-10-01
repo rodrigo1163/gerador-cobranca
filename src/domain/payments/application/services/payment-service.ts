@@ -1,19 +1,14 @@
 export interface CreateChargeParams {
-  chargeId: string
-  customer: {
-    id: string
-    name: string
-    document: string
-    email?: string
-  }
-  amount: number
-  dueDate: Date
-  description?: string
+  orderId: string
+  amountInCents: number
 }
 
 export interface CreateChargeResponse {
   externalId: string
   paymentUrl: string
+
+  pixCopyPaste: string
+  qrCodeDataUrl: string
 }
 
 export abstract class PaymentService {
