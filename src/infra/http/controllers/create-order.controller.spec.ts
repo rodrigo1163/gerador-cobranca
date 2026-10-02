@@ -1,7 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { CreateOrderUseCase } from '../../../domain/orders/application/use-cases/create-order.use-case';
 import { InMemoryOrderRepository } from '../../../test/repositories/in-memory-order-repository';
-import { CreateOrderController } from './create-order.controller';
+import {
+  bodyValidationPipe,
+  CreateOrderController,
+} from './create-order.controller';
 
 describe('Create order controller', () => {
   let controller: CreateOrderController;
@@ -15,7 +18,9 @@ describe('Create order controller', () => {
   });
 
   it('returns the persisted order', async () => {
-    const result = await controller.handle({ amountInCents: 1500 });
+    const result = await controller.handle(
+      bodyValidationPipe.transform({ amountInCents: 1500 }),
+    );
 
     expect(result.order.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
@@ -28,14 +33,13 @@ describe('Create order controller', () => {
   it.each([
     {},
     { amountInCents: 0 },
+    { amountInCents: 99 },
     { amountInCents: -100 },
     { amountInCents: 10.5 },
     { amountInCents: '1000' },
     { amountInCents: 2_147_483_648 },
-  ])('rejects an invalid amount: %j', async (body) => {
-    await expect(
-      controller.handle(body as { amountInCents?: number }),
-    ).rejects.toThrow(BadRequestException);
+  ])('rejects an invalid amount: %j', (body) => {
+    expect(() => bodyValidationPipe.transform(body)).toThrow(BadRequestException);
     expect(ordersRepository.items).toHaveLength(0);
   });
 });

@@ -11,6 +11,7 @@ import { OrderNotFoundError } from '../errors/order-not-found-error';
 import { InvalidPixGatewayResponseError } from '../errors/invalid-pix-gateway-response-error';
 import { PixGatewayUnavailableError } from '../errors/pix-gateway-unavailable-error';
 import { OrderChargeLink } from '../../enterprise/entities/value-objects/order-charge-link';
+import { InvalidChargeAmountError } from '../errors/invalid-charge-amount-error';
 
 interface GenerateOrderPixUseCaseRequest {
   orderId: string;
@@ -32,7 +33,7 @@ export class GenerateOrderPixUseCase {
     private ordersRepository: OrdersRepository,
     private orderChargeLinksRepository: OrderChargeLinksRepository,
     private paymentService: PaymentService,
-  ) {}
+  ) { }
 
   async execute({
     orderId,
@@ -45,6 +46,10 @@ export class GenerateOrderPixUseCase {
 
     if (!order) {
       return left(new OrderNotFoundError());
+    }
+
+    if (!order.isValidAmount()) {
+      throw new InvalidChargeAmountError();
     }
 
     let pixCharge: CreatePixChargeResponse;

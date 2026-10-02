@@ -17,6 +17,10 @@ export class Order extends Entity<OrderProps> {
     return this.props.status;
   }
 
+  isValidAmount(): boolean {
+    return this.props.amountInCents >= 100;
+  }
+
   static create(
     props: Pick<OrderProps, 'amountInCents'> &
       Partial<Pick<OrderProps, 'status'>>,
