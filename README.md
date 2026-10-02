@@ -9,7 +9,7 @@ Backend Node.js/TypeScript com NestJS para gerar cobranças Pix de pedidos. O ca
 | Item | Estado | Evidência ou pendência |
 | --- | :---: | --- |
 | Pedido com ID, valor em centavos e estado inicial de pagamento pendente | ✅ | `Order` começa em `PENDING_PAYMENT`. |
-| Pedido em memória e valor fixo de R$ 10,00 definido no backend | ❌ | A aplicação usa PostgreSQL e recebe `amountInCents` em `POST /orders`; R$ 10,00 é usado nos testes. |
+| Persistência dos pedidos e definição do valor (adaptação do desafio) | ✅ | A aplicação usa PostgreSQL, com repositórios em memória nos testes. O valor é recebido em `amountInCents` no `POST /orders`; R$ 10,00 é usado nos testes. |
 | Porta de cobrança com saída `chargeId`, `pixCopyPaste` e `qrCodeDataUrl` | ✅ | `PaymentService` define o contrato comum. |
 | Porta com entrada somente `orderId` e `amountInCents` | ✅ | O ID do cliente Asaas é configuração do adaptador. |
 | Erros próprios para entrada inválida, gateway indisponível e resposta inválida | ✅ | Há classes de erro da aplicação e tradução de erros nos adaptadores. |
