@@ -3,9 +3,9 @@ import { ValueObject } from '../../../../../core/entities/value-object'
 export type PixProvider = 'ABACATEPAY' | 'DELFINANCE' | 'ASAAS'
 
 export interface OrderChargeLinkProps {
-  orderId: string
-  chargeId: string
-  provider: PixProvider
+  orderId: string // Identificador do pedido associado à cobrança.
+  chargeId: string // Identificador da cobrança no provedor de pagamento.
+  provider: PixProvider // Provedor de pagamento que criou a cobrança.
 }
 
 export class OrderChargeLink extends ValueObject<OrderChargeLinkProps> {
