@@ -22,6 +22,7 @@ enum OrderStatus {
 enum PixProvider {
   ABACATEPAY
   DELFINANCE
+  ASAAS
 }
 
 model Order {

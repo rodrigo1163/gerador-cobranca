@@ -21,7 +21,8 @@ export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 export const PixProvider = {
   ABACATEPAY: 'ABACATEPAY',
-  DELFINANCE: 'DELFINANCE'
+  DELFINANCE: 'DELFINANCE',
+  ASAAS: 'ASAAS'
 } as const
 
 export type PixProvider = (typeof PixProvider)[keyof typeof PixProvider]

@@ -1,12 +1,12 @@
 import { makeOrder } from '../../../../test/factories/make-order'
-import { FakeGeneratePixCharge } from '../../../../test/services/fake-generate-pix-charge'
+import { FakePaymentService } from '../../../../test/services/fake-payment-service'
 import { InMemoryOrderChargeLinksRepository } from '../../../../test/repositories/in-memory-order-charge-links-repository'
 import { InMemoryOrderRepository } from '../../../../test/repositories/in-memory-order-repository'
 import { GenerateOrderPixUseCase } from './generate-order-pix.use-case'
 
 let inMemoryOrderRepository: InMemoryOrderRepository
 let inMemoryOrderChargeLinksRepository: InMemoryOrderChargeLinksRepository
-let fakeGeneratePixCharge: FakeGeneratePixCharge
+let fakePaymentService: FakePaymentService
 let sut: GenerateOrderPixUseCase
 
 describe('Generate order Pix', () => {
@@ -14,12 +14,12 @@ describe('Generate order Pix', () => {
     inMemoryOrderRepository = new InMemoryOrderRepository()
     inMemoryOrderChargeLinksRepository =
       new InMemoryOrderChargeLinksRepository()
-    fakeGeneratePixCharge = new FakeGeneratePixCharge()
+    fakePaymentService = new FakePaymentService()
 
     sut = new GenerateOrderPixUseCase(
       inMemoryOrderRepository,
       inMemoryOrderChargeLinksRepository,
-      fakeGeneratePixCharge,
+      fakePaymentService,
     )
   })
 
@@ -39,7 +39,7 @@ describe('Generate order Pix', () => {
         qrCodeDataUrl: `data:image/png;base64,qr-${order.id.toString()}`,
       },
     })
-    expect(fakeGeneratePixCharge.calls).toEqual([
+    expect(fakePaymentService.calls).toEqual([
       {
         orderId: order.id.toString(),
         amountInCents: 1000,
@@ -67,7 +67,7 @@ describe('Generate order Pix', () => {
     expect(result.value).toMatchObject({
       message: 'Order not found.',
     })
-    expect(fakeGeneratePixCharge.calls).toHaveLength(0)
+    expect(fakePaymentService.calls).toHaveLength(0)
   })
 
   it('should not generate Pix when the order id is empty', async () => {
@@ -79,6 +79,6 @@ describe('Generate order Pix', () => {
     expect(result.value).toMatchObject({
       message: 'Order id is required.',
     })
-    expect(fakeGeneratePixCharge.calls).toHaveLength(0)
+    expect(fakePaymentService.calls).toHaveLength(0)
   })
 })

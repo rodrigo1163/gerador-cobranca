@@ -1,6 +1,6 @@
 import { ValueObject } from '../../../../../core/entities/value-object'
 
-export type PixProvider = 'ABACATEPAY' | 'DELFINANCE'
+export type PixProvider = 'ABACATEPAY' | 'DELFINANCE' | 'ASAAS'
 
 export interface OrderChargeLinkProps {
   orderId: string

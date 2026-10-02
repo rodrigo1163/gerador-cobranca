@@ -1,0 +1,1 @@
+ALTER TYPE "PixProvider" ADD VALUE 'ASAAS';

@@ -2,9 +2,9 @@ import { Either, left, right } from '../../../../core/either'
 import { OrderChargeLinksRepository } from '../repositories/order-charge-links-repository'
 import { OrdersRepository } from '../repositories/orders-repository'
 import {
-  GeneratePixCharge,
-  GeneratePixChargeResponse,
-} from '../services/generate-pix-charge'
+  PaymentService,
+  CreatePixChargeResponse,
+} from '../services/payment-service'
 import { InvalidPixChargeInputError } from '../errors/invalid-pix-charge-input-error'
 import { OrderNotFoundError } from '../errors/order-not-found-error'
 import { OrderChargeLink } from '../../enterprise/entities/value-objects/order-charge-link'
@@ -16,7 +16,7 @@ interface GenerateOrderPixUseCaseRequest {
 type GenerateOrderPixUseCaseResponse = Either<
   OrderNotFoundError | InvalidPixChargeInputError,
   {
-    pixCharge: GeneratePixChargeResponse
+    pixCharge: CreatePixChargeResponse
   }
 >
 
@@ -24,7 +24,7 @@ export class GenerateOrderPixUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
     private orderChargeLinksRepository: OrderChargeLinksRepository,
-    private generatePixCharge: GeneratePixCharge,
+    private paymentService: PaymentService,
   ) { }
 
   async execute({
@@ -40,7 +40,7 @@ export class GenerateOrderPixUseCase {
       return left(new OrderNotFoundError())
     }
 
-    const pixCharge = await this.generatePixCharge.execute({
+    const pixCharge = await this.paymentService.createPixCharge({
       orderId: order.id.toString(),
       amountInCents: order.amountInCents,
     })
@@ -48,7 +48,7 @@ export class GenerateOrderPixUseCase {
     const orderChargeLink = OrderChargeLink.create({
       orderId: order.id.toString(),
       chargeId: pixCharge.chargeId,
-      provider: this.generatePixCharge.provider,
+      provider: this.paymentService.provider,
     })
 
     await this.orderChargeLinksRepository.create(orderChargeLink)

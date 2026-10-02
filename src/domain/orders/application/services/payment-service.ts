@@ -1,20 +1,20 @@
 import { PixProvider } from '../repositories/order-charge-links-repository'
 
-export interface GeneratePixChargeParams {
+export interface CreatePixChargeParams {
   orderId: string
   amountInCents: number
 }
 
-export interface GeneratePixChargeResponse {
+export interface CreatePixChargeResponse {
   chargeId: string
   pixCopyPaste: string
   qrCodeDataUrl: string
 }
 
-export abstract class GeneratePixCharge {
+export abstract class PaymentService {
   abstract readonly provider: PixProvider
 
-  abstract execute(
-    params: GeneratePixChargeParams,
-  ): Promise<GeneratePixChargeResponse>
+  abstract createPixCharge(
+    params: CreatePixChargeParams,
+  ): Promise<CreatePixChargeResponse>
 }
