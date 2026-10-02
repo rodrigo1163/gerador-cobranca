@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import z from 'zod';
 import { CreateOrderUseCase } from '../../../domain/orders/application/use-cases/create-order.use-case';
 import { ZodValidationPipe } from '../pipes/zod-validation-pipe';
+import { OrderPresenter } from '../presenters/order-presenter';
 
 const createOrderBodySchema = z.object({
   amountInCents: z.number().int().min(100).max(2_147_483_647),
@@ -29,12 +30,6 @@ export class CreateOrderController {
 
     const { order } = result.value;
 
-    return {
-      order: {
-        id: order.id.toString(),
-        amountInCents: order.amountInCents,
-        status: order.status,
-      },
-    };
+    return { order: OrderPresenter.toHTTP(order) };
   }
 }

@@ -12,6 +12,7 @@ import { OrderNotFoundError } from '../../../domain/orders/application/errors/or
 import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
 import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
 import { GenerateOrderPixUseCase } from '../../../domain/orders/application/use-cases/generate-order-pix.use-case';
+import { PixChargePresenter } from '../presenters/pix-charge-presenter';
 
 @Controller('orders')
 export class GenerateOrderPixController {
@@ -40,6 +41,6 @@ export class GenerateOrderPixController {
       }
     }
 
-    return result.value;
+    return { pixCharge: PixChargePresenter.toHTTP(result.value.pixCharge) };
   }
 }
