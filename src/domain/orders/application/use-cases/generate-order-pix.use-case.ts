@@ -13,6 +13,7 @@ import { OrderChargeLink } from '../../enterprise/entities/value-objects/order-c
 
 interface GenerateOrderPixUseCaseRequest {
   orderId: string;
+  customerId?: string;
 }
 
 type GenerateOrderPixUseCaseResponse = Either<
@@ -30,10 +31,11 @@ export class GenerateOrderPixUseCase {
     private ordersRepository: OrdersRepository,
     private orderChargeLinksRepository: OrderChargeLinksRepository,
     private paymentService: PaymentService,
-  ) { }
+  ) {}
 
   async execute({
     orderId,
+    customerId,
   }: GenerateOrderPixUseCaseRequest): Promise<GenerateOrderPixUseCaseResponse> {
     if (!orderId.trim()) {
       return left(new InvalidPixChargeInputError('Order id is required.'));
@@ -51,6 +53,7 @@ export class GenerateOrderPixUseCase {
       pixCharge = await this.paymentService.createPixCharge({
         orderId: order.id.toString(),
         amountInCents: order.amountInCents,
+        ...(customerId === undefined ? {} : { customerId }),
       });
     } catch (error) {
       if (

@@ -5,6 +5,7 @@ import {
   PaymentService,
 } from '../../../domain/orders/application/services/payment-service';
 import { AsaasClient } from './asaas-client';
+import { InvalidPixChargeInputError } from '../../../domain/orders/application/errors/invalid-pix-charge-input-error';
 import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
 import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
 
@@ -17,9 +18,6 @@ interface AsaasPixQrCodeResponse {
   encodedImage: string;
 }
 
-// Substitua pelo ID de um cliente cadastrado na sua conta Asaas ao testar cobranças.
-const MOCK_ASAAS_CUSTOMER_ID = 'cus_substituir_por_cliente_sandbox';
-
 @Injectable()
 export class AsaasPaymentService extends PaymentService {
   readonly provider = 'ASAAS' as const;
@@ -28,17 +26,22 @@ export class AsaasPaymentService extends PaymentService {
   async createPixCharge({
     orderId,
     amountInCents,
+    customerId,
   }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
+    if (typeof customerId !== 'string' || !customerId.trim()) {
+      throw new InvalidPixChargeInputError('Asaas customer id is required.');
+    }
+
     let payment: AsaasPaymentResponse;
     let pix: AsaasPixQrCodeResponse;
 
     try {
       payment = await this.client.post<AsaasPaymentResponse>('/payments', {
-        customer: MOCK_ASAAS_CUSTOMER_ID,
+        customer: customerId.trim(),
         billingType: 'PIX',
         value: amountInCents / 100,
         dueDate: new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'America/Manaus',
+          timeZone: 'America/Sao_Paulo',
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',

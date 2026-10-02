@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   BadGatewayException,
   Controller,
   NotFoundException,
@@ -17,8 +18,14 @@ export class GenerateOrderPixController {
   constructor(private generateOrderPixUseCase: GenerateOrderPixUseCase) {}
 
   @Post(':orderId/pix')
-  async handle(@Param('orderId') orderId: string) {
-    const result = await this.generateOrderPixUseCase.execute({ orderId });
+  async handle(
+    @Param('orderId') orderId: string,
+    @Body() body?: { customerId?: string },
+  ) {
+    const result = await this.generateOrderPixUseCase.execute({
+      orderId,
+      customerId: body?.customerId,
+    });
 
     if (result.isLeft()) {
       const error = result.value;

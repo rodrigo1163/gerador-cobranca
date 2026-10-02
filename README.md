@@ -39,7 +39,7 @@ Copy `.env.example` to `.env` and set `DATABASE_URL`. The active payment service
 ABACATEPAY_API_KEY=your_development_or_production_key
 ```
 
-To use Asaas, change the `PaymentService` provider in `PaymentsModule` to `useClass: AsaasPaymentService` and import that class. Set `ASAAS_API_KEY` in `.env`. `AsaasPaymentService` currently uses a placeholder customer ID in code; replace it with an ID from your Asaas sandbox account before testing charges. `ASAAS_BASE_URL` defaults to the Sandbox API (`https://api-sandbox.asaas.com/v3`); set it to `https://api.asaas.com/v3` only when using a production key.
+To use Asaas, change the `PaymentService` provider in `PaymentsModule` to `useClass: AsaasPaymentService` and import that class. Set `ASAAS_API_KEY` in `.env` and send the Asaas customer ID as `customerId` in the body of `POST /orders/:orderId/pix`. `ASAAS_BASE_URL` defaults to the Sandbox API (`https://api-sandbox.asaas.com/v3`); set it to `https://api.asaas.com/v3` only when using a production key.
 
 The app requires a PostgreSQL connection in `DATABASE_URL`. Apply the checked-in migrations before serving requests:
 
@@ -74,10 +74,11 @@ $ pnpm run test:cov
 ```
 
 For E2E tests, start PostgreSQL and set `DATABASE_URL` in `.env.test` (see
-`.env.test.example`), or export it in your shell. Each E2E test file applies the
-checked-in migrations to a temporary PostgreSQL schema and drops that schema
-after the tests. The payment provider is replaced with a local fake in the
-controller test, so no payment API key is needed.
+`.env.test.example`), or export it in your shell. Set an AbacatePay development
+API key and an Asaas sandbox API key in `.env`. The tests use both real gateways,
+create one sandbox charge in each, and create or reuse a test customer in Asaas.
+Each E2E test file applies the checked-in migrations to a temporary PostgreSQL
+schema and drops that schema after the tests. Gateway sandbox records remain.
 
 ## Deployment
 

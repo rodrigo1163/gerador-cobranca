@@ -1,74 +1,172 @@
 import { randomUUID } from 'node:crypto';
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../../../app.module';
+import type { CreatePixChargeResponse } from '../../../domain/orders/application/services/payment-service';
 import { PaymentService } from '../../../domain/orders/application/services/payment-service';
 import { PrismaService } from '../../database/prisma/prisma.service';
-import { FakePaymentService } from '../../../test/services/fake-payment-service';
+import { AbacatePayPaymentService } from '../../payments/abacate-pay/abacate-pay-payment.service';
+import { AsaasClient } from '../../payments/asaas/asaas-client';
+import { AsaasPaymentService } from '../../payments/asaas/asaas-payment.service';
 
-describe('Generate order Pix (E2E)', () => {
-  let app: INestApplication;
+interface AsaasCustomer {
+  id: string;
+}
+
+interface AsaasCustomerList {
+  data: AsaasCustomer[];
+}
+
+const customerExternalReference = 'gerador-cobranca-e2e';
+const amountInCents = 1000;
+
+describe('Generate order Pix with real gateways (E2E)', () => {
+  const apps: INestApplication[] = [];
+  let abacateApp: INestApplication;
+  let asaasApp: INestApplication;
   let prisma: PrismaService;
-  let payment: FakePaymentService;
+  let asaasCustomerId: string;
 
-  beforeAll(async () => {
-    payment = new FakePaymentService();
-
+  async function createApp(paymentService: Type<PaymentService>) {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(PaymentService)
-      .useValue(payment)
+      .useClass(paymentService)
       .compile();
 
-    app = moduleRef.createNestApplication();
-    prisma = moduleRef.get(PrismaService);
+    const app = moduleRef.createNestApplication();
+    apps.push(app);
     await app.init();
+
+    return { app, prisma: moduleRef.get(PrismaService) };
+  }
+
+  beforeAll(async () => {
+    if (!process.env.ABACATEPAY_API_KEY?.startsWith('abc_dev_')) {
+      throw new Error('E2E requires an AbacatePay development API key.');
+    }
+
+    const asaasBaseUrl = new URL(
+      process.env.ASAAS_BASE_URL ?? 'https://api-sandbox.asaas.com/v3',
+    );
+    if (asaasBaseUrl.hostname !== 'api-sandbox.asaas.com') {
+      throw new Error('E2E requires the Asaas sandbox URL.');
+    }
+
+    const asaasClient = new AsaasClient();
+    const customers = await asaasClient.get<AsaasCustomerList>(
+      `/customers?externalReference=${encodeURIComponent(customerExternalReference)}`,
+    );
+
+    if (!Array.isArray(customers.data)) {
+      throw new Error('Invalid Asaas customer list response.');
+    }
+
+    let customer = customers.data[0];
+    if (!customer) {
+      customer = await asaasClient.post<AsaasCustomer>('/customers', {
+        name: 'Teste E2E Gerador Cobranca',
+        cpfCnpj: '24971563792',
+        externalReference: customerExternalReference,
+        notificationDisabled: true,
+      });
+    }
+
+    if (typeof customer.id !== 'string' || !customer.id.trim()) {
+      throw new Error('Asaas did not return a customer ID.');
+    }
+    asaasCustomerId = customer.id;
+
+    const abacate = await createApp(AbacatePayPaymentService);
+    abacateApp = abacate.app;
+    prisma = abacate.prisma;
+    asaasApp = (await createApp(AsaasPaymentService)).app;
   });
 
   afterAll(async () => {
-    await app?.close();
+    await Promise.all(apps.map((app) => app.close()));
   });
 
-  it('creates a Pix charge and persists its link to the order', async () => {
+  it('returns the same Pix contract and persists each gateway charge', async () => {
+    const charges: CreatePixChargeResponse[] = [];
+
+    for (const { app, provider } of [
+      { app: asaasApp, provider: 'ASAAS' },
+      { app: abacateApp, provider: 'ABACATEPAY' },
+    ] as const) {
+      const orderId = randomUUID();
+      await prisma.order.create({
+        data: { id: orderId, amountInCents },
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/orders/${orderId}/pix`)
+        .send(provider === 'ASAAS' ? { customerId: asaasCustomerId } : {});
+
+      expect(
+        response.status,
+        `${provider}: ${JSON.stringify(response.body)}`,
+      ).toBe(201);
+      expect(Object.keys(response.body)).toEqual(['pixCharge']);
+
+      const pixCharge = response.body.pixCharge as CreatePixChargeResponse;
+      expect(Object.keys(pixCharge).sort()).toEqual([
+        'chargeId',
+        'pixCopyPaste',
+        'qrCodeDataUrl',
+      ]);
+      expect(pixCharge.chargeId.trim()).not.toBe('');
+      expect(pixCharge.pixCopyPaste.trim()).not.toBe('');
+      expect(pixCharge.qrCodeDataUrl).toMatch(
+        /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
+      );
+      expect(
+        Buffer.from(pixCharge.qrCodeDataUrl.split(',')[1], 'base64').length,
+      ).toBeGreaterThan(0);
+
+      const link = await prisma.orderChargeLink.findUnique({
+        where: { orderId },
+      });
+      expect(link).toMatchObject({
+        orderId,
+        chargeId: pixCharge.chargeId,
+        provider,
+      });
+
+      charges.push(pixCharge);
+    }
+
+    expect(charges).toHaveLength(2);
+    expect(Object.keys(charges[0]).sort()).toEqual(
+      Object.keys(charges[1]).sort(),
+    );
+  });
+
+  it('returns 404 for an order that does not exist with either gateway', async () => {
+    for (const app of [abacateApp, asaasApp]) {
+      const response = await request(app.getHttpServer()).post(
+        `/orders/${randomUUID()}/pix`,
+      );
+
+      expect(response.status).toBe(404);
+    }
+  });
+
+  it('returns 400 without a customer ID in the Asaas flow', async () => {
     const orderId = randomUUID();
-
     await prisma.order.create({
-      data: { id: orderId, amountInCents: 1000 },
+      data: { id: orderId, amountInCents },
     });
 
-    const response = await request(app.getHttpServer()).post(
-      `/orders/${orderId}/pix`,
-    );
+    const response = await request(asaasApp.getHttpServer())
+      .post(`/orders/${orderId}/pix`)
+      .send({});
 
-    expect(response.status).toBe(201);
-    expect(response.body).toEqual({
-      pixCharge: {
-        chargeId: `charge-${orderId}`,
-        pixCopyPaste: `pix-${orderId}`,
-        qrCodeDataUrl: `data:image/png;base64,qr-${orderId}`,
-      },
-    });
-    expect(payment.calls).toEqual([{ orderId, amountInCents: 1000 }]);
-
-    const link = await prisma.orderChargeLink.findUnique({
-      where: { orderId },
-    });
-
-    expect(link).toMatchObject({
-      orderId,
-      chargeId: `charge-${orderId}`,
-      provider: 'ABACATEPAY',
-    });
-  });
-
-  it('returns 404 when the order does not exist', async () => {
-    const response = await request(app.getHttpServer()).post(
-      `/orders/${randomUUID()}/pix`,
-    );
-
-    expect(response.status).toBe(404);
-    expect(payment.calls).toHaveLength(1);
+    expect(response.status).toBe(400);
+    expect(
+      await prisma.orderChargeLink.findUnique({ where: { orderId } }),
+    ).toBeNull();
   });
 });
