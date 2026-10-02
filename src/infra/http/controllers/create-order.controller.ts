@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import z from 'zod';
 import { CreateOrderUseCase } from '../../../domain/orders/application/use-cases/create-order.use-case';
 import { ZodValidationPipe } from '../pipes/zod-validation-pipe';
@@ -19,9 +19,15 @@ export class CreateOrderController {
   async handle(@Body(bodyValidationPipe) body: CreateOrderBodySchema) {
     const { amountInCents } = body;
 
-    const { order } = await this.createOrderUseCase.execute({
+    const result = await this.createOrderUseCase.execute({
       amountInCents,
     });
+
+    if (result.isLeft()) {
+      throw new BadRequestException(result.value.message);
+    }
+
+    const { order } = result.value;
 
     return {
       order: {

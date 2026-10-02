@@ -7,8 +7,11 @@ describe('Create order', () => {
     const ordersRepository = new InMemoryOrderRepository();
     const useCase = new CreateOrderUseCase(ordersRepository);
 
-    const { order } = await useCase.execute({ amountInCents: 1500 });
+    const result = await useCase.execute({ amountInCents: 1500 });
 
+    expect(result.isRight()).toBe(true);
+    if (result.isLeft()) throw result.value;
+    const { order } = result.value;
     expect(order.amountInCents).toBe(1500);
     expect(order.status).toBe('PENDING_PAYMENT');
     expect(await ordersRepository.findById(order.id.toString())).toBe(order);
@@ -18,9 +21,10 @@ describe('Create order', () => {
     const ordersRepository = new InMemoryOrderRepository();
     const useCase = new CreateOrderUseCase(ordersRepository);
 
-    await expect(useCase.execute({ amountInCents: 99 })).rejects.toThrow(
-      InvalidChargeAmountError,
-    );
+    const result = await useCase.execute({ amountInCents: 99 });
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(InvalidChargeAmountError);
     expect(ordersRepository.items).toHaveLength(0);
   });
 });

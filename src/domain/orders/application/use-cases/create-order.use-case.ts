@@ -2,24 +2,29 @@ import { Injectable } from '@nestjs/common';
 import { OrdersRepository } from '../repositories/orders-repository';
 import { Order } from '../../enterprise/entities/order';
 import { InvalidChargeAmountError } from '../errors/invalid-charge-amount-error';
+import { Either, left, right } from '../../../../core/either';
 
 interface CreateOrderUseCaseRequest {
   amountInCents: number;
 }
 
+type CreateOrderUseCaseResponse = Either<InvalidChargeAmountError, { order: Order }>;
+
 @Injectable()
 export class CreateOrderUseCase {
-  constructor(private ordersRepository: OrdersRepository) { }
+  constructor(private ordersRepository: OrdersRepository) {}
 
-  async execute({ amountInCents }: CreateOrderUseCaseRequest) {
+  async execute({
+    amountInCents,
+  }: CreateOrderUseCaseRequest): Promise<CreateOrderUseCaseResponse> {
     const order = Order.create({ amountInCents });
 
     if (!order.isValidAmount()) {
-      throw new InvalidChargeAmountError();
+      return left(new InvalidChargeAmountError());
     }
 
     await this.ordersRepository.create(order);
 
-    return { order };
+    return right({ order });
   }
 }

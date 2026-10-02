@@ -42,4 +42,11 @@ describe('Create order controller', () => {
     expect(() => bodyValidationPipe.transform(body)).toThrow(BadRequestException);
     expect(ordersRepository.items).toHaveLength(0);
   });
+
+  it('maps a use case error to bad request', async () => {
+    await expect(controller.handle({ amountInCents: 99 })).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(ordersRepository.items).toHaveLength(0);
+  });
 });
