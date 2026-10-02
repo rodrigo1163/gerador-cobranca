@@ -47,6 +47,54 @@ The app requires a PostgreSQL connection in `DATABASE_URL`. Apply the checked-in
 pnpm exec prisma migrate deploy --config prisma7.config.ts
 ```
 
+## Test the endpoints in Insomnia
+
+Start the app with `pnpm run start:dev`. The default local URL is
+`http://localhost:3000` (or the port set by `PORT`). Create an Insomnia
+environment with `baseUrl` set to `http://localhost:3000`.
+
+1. Create an order with `POST {{ _.baseUrl }}/orders`. Select a JSON body,
+   which sends `Content-Type: application/json`:
+
+   ```json
+   { "amountInCents": 1500 }
+   ```
+
+   `1500` means R$ 15.00. The response is `201 Created`:
+
+   ```json
+   {
+     "order": {
+       "id": "<generated UUID>",
+       "amountInCents": 1500,
+       "status": "PENDING_PAYMENT"
+     }
+   }
+   ```
+
+   In this request's **Scripts > After-response** tab, you can verify the
+   response and save the order ID for the next request:
+
+   ```javascript
+   insomnia.test('order was created', () => {
+     insomnia.expect(insomnia.response.code).to.equal(201);
+     insomnia.expect(insomnia.response.json().order.status).to.equal('PENDING_PAYMENT');
+   });
+   insomnia.environment.set('orderId', insomnia.response.json().order.id);
+   ```
+
+2. Generate a Pix charge with `POST {{ _.baseUrl }}/orders/{{ _.orderId }}/pix`.
+   With the default AbacatePay service, use an empty JSON body `{}`. The
+   response is `201 Created` and contains `pixCharge.chargeId`,
+   `pixCharge.pixCopyPaste`, and `pixCharge.qrCodeDataUrl`.
+
+   If the app is configured for Asaas, send `{ "customerId": "<Asaas customer ID>" }`
+   instead. Use a new order for each Pix charge request.
+
+To check validation, send `POST {{ _.baseUrl }}/orders` with
+`{ "amountInCents": 0 }`: it returns `400 Bad Request`. Sending the Pix
+request with a nonexistent order UUID returns `404 Not Found`.
+
 ## Compile and run the project
 
 ```bash

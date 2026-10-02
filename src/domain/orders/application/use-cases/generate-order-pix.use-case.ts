@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '../../../../core/either';
 import { OrderChargeLinksRepository } from '../repositories/order-charge-links-repository';
 import { OrdersRepository } from '../repositories/orders-repository';
@@ -26,6 +27,7 @@ type GenerateOrderPixUseCaseResponse = Either<
   }
 >;
 
+@Injectable()
 export class GenerateOrderPixUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
