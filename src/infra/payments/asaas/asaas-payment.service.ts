@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import {
   CreatePixChargeParams,
   CreatePixChargeResponse,
@@ -16,30 +17,24 @@ interface AsaasPixQrCodeResponse {
   encodedImage: string;
 }
 
+// Substitua pelo ID de um cliente cadastrado na sua conta Asaas ao testar cobranças.
+const MOCK_ASAAS_CUSTOMER_ID = 'cus_substituir_por_cliente_sandbox';
+
+@Injectable()
 export class AsaasPaymentService extends PaymentService {
   readonly provider = 'ASAAS' as const;
-
-  constructor(
-    private readonly client: AsaasClient,
-    private readonly customerId: string,
-  ) {
-    super();
-  }
+  private readonly client = new AsaasClient();
 
   async createPixCharge({
     orderId,
     amountInCents,
   }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
-    if (!this.customerId.trim()) {
-      throw new Error('Asaas customer ID is required.');
-    }
-
     let payment: AsaasPaymentResponse;
     let pix: AsaasPixQrCodeResponse;
 
     try {
       payment = await this.client.post<AsaasPaymentResponse>('/payments', {
-        customer: this.customerId,
+        customer: MOCK_ASAAS_CUSTOMER_ID,
         billingType: 'PIX',
         value: amountInCents / 100,
         dueDate: new Intl.DateTimeFormat('en-CA', {

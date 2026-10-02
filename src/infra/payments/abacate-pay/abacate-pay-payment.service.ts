@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import {
   PaymentService,
   CreatePixChargeParams,
@@ -17,12 +18,10 @@ interface CreateTransparentPixResponse {
   } | null;
 }
 
+@Injectable()
 export class AbacatePayPaymentService extends PaymentService {
   readonly provider = 'ABACATEPAY' as const;
-
-  constructor(private readonly client: AbacatePayClient) {
-    super();
-  }
+  private readonly client = new AbacatePayClient();
 
   async createPixCharge({
     orderId,

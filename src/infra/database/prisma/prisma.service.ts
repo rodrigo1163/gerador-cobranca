@@ -14,7 +14,10 @@ export class PrismaService
       throw new Error('DATABASE_URL is required');
     }
 
-    super({ adapter: new PrismaPg({ connectionString }) });
+    const schema =
+      new URL(connectionString).searchParams.get('schema') ?? undefined;
+
+    super({ adapter: new PrismaPg({ connectionString }, { schema }) });
   }
 
   async onModuleInit() {

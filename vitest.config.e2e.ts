@@ -17,9 +17,11 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    include: ['**/*.spec.ts'],
+    include: ['**/*.e2e-spec.ts'],
     globals: true,
     root: './',
+    setupFiles: ['./test/setup-e2e.ts'],
+    hookTimeout: 60_000,
   },
   plugins: [
     swc.vite({
