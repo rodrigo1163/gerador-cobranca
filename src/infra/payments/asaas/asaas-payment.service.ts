@@ -5,7 +5,6 @@ import {
   PaymentService,
 } from '../../../domain/orders/application/services/payment-service';
 import { AsaasClient } from './asaas-client';
-import { InvalidPixChargeInputError } from '../../../domain/orders/application/errors/invalid-pix-charge-input-error';
 import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
 import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
 
@@ -22,22 +21,26 @@ interface AsaasPixQrCodeResponse {
 export class AsaasPaymentService extends PaymentService {
   readonly provider = 'ASAAS' as const;
   private readonly client = new AsaasClient();
+  private readonly customerId = process.env.ASAAS_CUSTOMER_ID ?? '';
+
+  constructor() {
+    super();
+
+    if (!this.customerId.trim()) {
+      throw new Error('ASAAS_CUSTOMER_ID is required');
+    }
+  }
 
   async createPixCharge({
     orderId,
     amountInCents,
-    customerId,
   }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
-    if (typeof customerId !== 'string' || !customerId.trim()) {
-      throw new InvalidPixChargeInputError('Asaas customer id is required.');
-    }
-
     let payment: AsaasPaymentResponse;
     let pix: AsaasPixQrCodeResponse;
 
     try {
       payment = await this.client.post<AsaasPaymentResponse>('/payments', {
-        customer: customerId.trim(),
+        customer: this.customerId.trim(),
         billingType: 'PIX',
         value: amountInCents / 100,
         dueDate: new Intl.DateTimeFormat('en-CA', {

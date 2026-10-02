@@ -82,7 +82,19 @@ describe('Generate order Pix with real gateways (E2E)', () => {
     const abacate = await createApp(AbacatePayPaymentService);
     abacateApp = abacate.app;
     prisma = abacate.prisma;
-    asaasApp = (await createApp(AsaasPaymentService)).app;
+
+    const previousCustomerId = process.env.ASAAS_CUSTOMER_ID;
+    process.env.ASAAS_CUSTOMER_ID = asaasCustomerId;
+
+    try {
+      asaasApp = (await createApp(AsaasPaymentService)).app;
+    } finally {
+      if (previousCustomerId === undefined) {
+        delete process.env.ASAAS_CUSTOMER_ID;
+      } else {
+        process.env.ASAAS_CUSTOMER_ID = previousCustomerId;
+      }
+    }
   });
 
   afterAll(async () => {
@@ -103,7 +115,7 @@ describe('Generate order Pix with real gateways (E2E)', () => {
 
       const response = await request(app.getHttpServer())
         .post(`/orders/${orderId}/pix`)
-        .send(provider === 'ASAAS' ? { customerId: asaasCustomerId } : {});
+        .send({});
 
       expect(
         response.status,
@@ -152,21 +164,5 @@ describe('Generate order Pix with real gateways (E2E)', () => {
 
       expect(response.status).toBe(404);
     }
-  });
-
-  it('returns 400 without a customer ID in the Asaas flow', async () => {
-    const orderId = randomUUID();
-    await prisma.order.create({
-      data: { id: orderId, amountInCents },
-    });
-
-    const response = await request(asaasApp.getHttpServer())
-      .post(`/orders/${orderId}/pix`)
-      .send({});
-
-    expect(response.status).toBe(400);
-    expect(
-      await prisma.orderChargeLink.findUnique({ where: { orderId } }),
-    ).toBeNull();
   });
 });

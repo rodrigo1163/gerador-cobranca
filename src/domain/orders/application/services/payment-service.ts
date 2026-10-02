@@ -3,7 +3,6 @@ import { PixProvider } from '../repositories/order-charge-links-repository';
 export interface CreatePixChargeParams {
   orderId: string;
   amountInCents: number;
-  customerId?: string;
 }
 
 export interface CreatePixChargeResponse {

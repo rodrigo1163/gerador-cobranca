@@ -1,169 +1,59 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Gerador de cobrança Pix
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend Node.js/TypeScript com NestJS para gerar cobranças Pix de pedidos. O caso de uso depende de `PaymentService`; a implementação ativa é escolhida em `src/infra/payments/payments.module.ts`. Este projeto usa **AbacatePay e Asaas**. A escolha do Asaas no lugar de Delfinance é intencional, mas difere do enunciado original do desafio.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Estado do desafio
 
-## Description
+✅ = implementado no código. ❌ = ausente ou ainda não demonstrado. A tabela considera Asaas como o segundo gateway escolhido para este projeto.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Item | Estado | Evidência ou pendência |
+| --- | :---: | --- |
+| Pedido com ID, valor em centavos e estado inicial de pagamento pendente | ✅ | `Order` começa em `PENDING_PAYMENT`. |
+| Pedido em memória e valor fixo de R$ 10,00 definido no backend | ❌ | A aplicação usa PostgreSQL e recebe `amountInCents` em `POST /orders`; R$ 10,00 é usado nos testes. |
+| Porta de cobrança com saída `chargeId`, `pixCopyPaste` e `qrCodeDataUrl` | ✅ | `PaymentService` define o contrato comum. |
+| Porta com entrada somente `orderId` e `amountInCents` | ✅ | O ID do cliente Asaas é configuração do adaptador. |
+| Erros próprios para entrada inválida, gateway indisponível e resposta inválida | ✅ | Há classes de erro da aplicação e tradução de erros nos adaptadores. |
+| `POST /orders/:orderId/pix` consulta o valor do pedido e grava cobrança e provedor | ✅ | `GenerateOrderPixUseCase` usa os repositórios e a porta injetada. |
+| Gerar Pix sem marcar o pedido como pago | ✅ | O caso de uso não altera o estado do pedido; o teste verifica `PENDING_PAYMENT`. |
+| Fake testa o caso de uso e impede integração para pedido inexistente ou ID vazio | ✅ | Testes unitários verificam que o fake não é chamado nesses casos. |
+| Valor inválido falha no caso de uso antes da integração | ❌ | Não há validação nem teste desse cenário no caso de uso de geração. |
+| Adaptador AbacatePay para criação de Pix | ✅ | Usa `/v2/transparents/create` e mapeia `id`, `brCode` e `brCodeBase64`. |
+| Adaptador Asaas Sandbox para criação de Pix | ✅ | Cria pagamento Pix e consulta o QR Code; converte centavos para reais no adaptador. |
+| Troca do gateway pela instância injetada | ✅ | `PaymentsModule` seleciona a implementação; atualmente usa Asaas. |
+| Contrato de entrada independente do gateway | ✅ | O controller e o caso de uso recebem apenas o ID do pedido. |
+| Mesmo formato de JSON de resposta para os dois gateways | ✅ | Ambos retornam `pixCharge` com os mesmos três campos. |
+| Validar PNG e provar que imagem e copia e cola representam a mesma cobrança | ❌ | Os testes só verificam prefixo de imagem e base64 não vazio. |
+| Timeout com resultado incerto, sem confirmação ou repetição automática | ❌ | Não há prazo de timeout nem teste desse comportamento. |
+| Testes HTTP controlados para sucesso, falha, timeout e JSON inválido em ambos | ❌ | Esses cenários ainda não têm testes controlados. |
+| Teste E2E com APIs de desenvolvimento/Sandbox | ✅ | Existe teste E2E para AbacatePay e Asaas; sua execução depende de banco, credenciais e acesso às APIs. |
+| ADR com fronteira, alternativa e custo | ❌ | Ainda não há ADR no repositório. |
 
-## Project setup
+## Configuração
 
 ```bash
-$ pnpm install
+pnpm install
+cp .env.example .env
 ```
 
-## Payment provider configuration
-
-Copy `.env.example` to `.env` and set `DATABASE_URL`. The active payment service is selected directly in `src/infra/payments/payments.module.ts`. It currently uses AbacatePay, which requires:
-
-```env
-ABACATEPAY_API_KEY=your_development_or_production_key
-```
-
-To use Asaas, change the `PaymentService` provider in `PaymentsModule` to `useClass: AsaasPaymentService` and import that class. Set `ASAAS_API_KEY` in `.env` and send the Asaas customer ID as `customerId` in the body of `POST /orders/:orderId/pix`. `ASAAS_BASE_URL` defaults to the Sandbox API (`https://api-sandbox.asaas.com/v3`); set it to `https://api.asaas.com/v3` only when using a production key.
-
-The app requires a PostgreSQL connection in `DATABASE_URL`. Apply the checked-in migrations before serving requests:
+Configure `DATABASE_URL` e as chaves de desenvolvimento em `.env`. Para usar Asaas, configure também `ASAAS_CUSTOMER_ID` com o ID de um cliente criado no Sandbox. `ASAAS_BASE_URL` aponta por padrão para `https://api-sandbox.asaas.com/v3`. A implementação ativa está em `src/infra/payments/payments.module.ts`; a seleção atual é `AsaasPaymentService`.
 
 ```bash
 pnpm exec prisma migrate deploy --config prisma7.config.ts
+pnpm run start:dev
 ```
 
-## Test the endpoints in Insomnia
+## Teste manual com cliente HTTP
 
-Start the app with `pnpm run start:dev`. The default local URL is
-`http://localhost:3000` (or the port set by `PORT`). Create an Insomnia
-environment with `baseUrl` set to `http://localhost:3000`.
+1. Crie um pedido com `POST http://localhost:3000/orders` e corpo `{ "amountInCents": 1000 }`. Guarde o `order.id` da resposta.
+2. Gere o Pix com `POST http://localhost:3000/orders/<order.id>/pix` e corpo `{}` com qualquer um dos gateways.
+3. Confira `pixCharge.chargeId`, `pixCharge.pixCopyPaste` e `pixCharge.qrCodeDataUrl` na resposta. O pedido permanece `PENDING_PAYMENT`.
 
-1. Create an order with `POST {{ _.baseUrl }}/orders`. Select a JSON body,
-   which sends `Content-Type: application/json`:
-
-   ```json
-   { "amountInCents": 1500 }
-   ```
-
-   `1500` means R$ 15.00. The response is `201 Created`:
-
-   ```json
-   {
-     "order": {
-       "id": "<generated UUID>",
-       "amountInCents": 1500,
-       "status": "PENDING_PAYMENT"
-     }
-   }
-   ```
-
-   In this request's **Scripts > After-response** tab, you can verify the
-   response and save the order ID for the next request:
-
-   ```javascript
-   insomnia.test('order was created', () => {
-     insomnia.expect(insomnia.response.code).to.equal(201);
-     insomnia.expect(insomnia.response.json().order.status).to.equal('PENDING_PAYMENT');
-   });
-   insomnia.environment.set('orderId', insomnia.response.json().order.id);
-   ```
-
-2. Generate a Pix charge with `POST {{ _.baseUrl }}/orders/{{ _.orderId }}/pix`.
-   With the default AbacatePay service, use an empty JSON body `{}`. The
-   response is `201 Created` and contains `pixCharge.chargeId`,
-   `pixCharge.pixCopyPaste`, and `pixCharge.qrCodeDataUrl`.
-
-   If the app is configured for Asaas, send `{ "customerId": "<Asaas customer ID>" }`
-   instead. Use a new order for each Pix charge request.
-
-To check validation, send `POST {{ _.baseUrl }}/orders` with
-`{ "amountInCents": 0 }`: it returns `400 Bad Request`. Sending the Pix
-request with a nonexistent order UUID returns `404 Not Found`.
-
-## Compile and run the project
+## Testes
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm test
+pnpm run test:e2e
+pnpm build
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests (requires PostgreSQL and DATABASE_URL)
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
-```
-
-For E2E tests, start PostgreSQL and set `DATABASE_URL` in `.env.test` (see
-`.env.test.example`), or export it in your shell. Set an AbacatePay development
-API key and an Asaas sandbox API key in `.env`. The tests use both real gateways,
-create one sandbox charge in each, and create or reuse a test customer in Asaas.
-Each E2E test file applies the checked-in migrations to a temporary PostgreSQL
-schema and drops that schema after the tests. Gateway sandbox records remain.
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Os testes E2E exigem PostgreSQL, `DATABASE_URL` em `.env.test` (veja `.env.test.example`), chave de desenvolvimento AbacatePay e chave Sandbox Asaas. Eles criam cobranças de teste nas APIs externas.
