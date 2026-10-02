@@ -20,6 +20,7 @@ interface GenerateOrderPixUseCaseRequest {
 type GenerateOrderPixUseCaseResponse = Either<
   | OrderNotFoundError
   | InvalidPixChargeInputError
+  | InvalidChargeAmountError
   | InvalidPixGatewayResponseError
   | PixGatewayUnavailableError,
   {
@@ -49,7 +50,7 @@ export class GenerateOrderPixUseCase {
     }
 
     if (!order.isValidAmount()) {
-      throw new InvalidChargeAmountError();
+      return left(new InvalidChargeAmountError());
     }
 
     let pixCharge: CreatePixChargeResponse;

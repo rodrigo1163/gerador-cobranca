@@ -16,7 +16,7 @@ Backend Node.js/TypeScript com NestJS para gerar cobranças Pix de pedidos. O ca
 | `POST /orders/:orderId/pix` consulta o valor do pedido e grava cobrança e provedor | ✅ | `GenerateOrderPixUseCase` usa os repositórios e a porta injetada. |
 | Gerar Pix sem marcar o pedido como pago | ✅ | O caso de uso não altera o estado do pedido; o teste verifica `PENDING_PAYMENT`. |
 | Fake testa o caso de uso e impede integração para pedido inexistente ou ID vazio | ✅ | Testes unitários verificam que o fake não é chamado nesses casos. |
-| Valor inválido falha no caso de uso antes da integração | ❌ | Não há validação nem teste desse cenário no caso de uso de geração. |
+| Valor inválido falha no caso de uso antes da integração | ✅ | Um pedido de 99 centavos retorna `InvalidChargeAmountError`; o teste confirma que o fake não é chamado e nenhum vínculo é criado. |
 | Adaptador AbacatePay para criação de Pix | ✅ | Usa `/v2/transparents/create` e mapeia `id`, `brCode` e `brCodeBase64`. |
 | Adaptador Asaas Sandbox para criação de Pix | ✅ | Cria pagamento Pix e consulta o QR Code; converte centavos para reais no adaptador. |
 | Troca do gateway pela instância injetada | ✅ | `PaymentsModule` seleciona a implementação; atualmente usa Asaas. |

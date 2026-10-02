@@ -3,6 +3,7 @@ import { FakePaymentService } from '../../../../test/services/fake-payment-servi
 import { InMemoryOrderChargeLinksRepository } from '../../../../test/repositories/in-memory-order-charge-links-repository'
 import { InMemoryOrderRepository } from '../../../../test/repositories/in-memory-order-repository'
 import { GenerateOrderPixUseCase } from './generate-order-pix.use-case'
+import { InvalidChargeAmountError } from '../errors/invalid-charge-amount-error'
 
 let inMemoryOrderRepository: InMemoryOrderRepository
 let inMemoryOrderChargeLinksRepository: InMemoryOrderChargeLinksRepository
@@ -80,5 +81,18 @@ describe('Generate order Pix', () => {
       message: 'Order id is required.',
     })
     expect(fakePaymentService.calls).toHaveLength(0)
+  })
+
+  it('should reject an invalid order amount before calling the payment service', async () => {
+    const order = makeOrder({ amountInCents: 99 })
+    await inMemoryOrderRepository.create(order)
+
+    const result = await sut.execute({ orderId: order.id.toString() })
+
+    expect(result.isLeft()).toBe(true)
+    expect(result.value).toBeInstanceOf(InvalidChargeAmountError)
+    expect(fakePaymentService.calls).toHaveLength(0)
+    expect(inMemoryOrderChargeLinksRepository.items).toHaveLength(0)
+    expect(order.status).toBe('PENDING_PAYMENT')
   })
 })

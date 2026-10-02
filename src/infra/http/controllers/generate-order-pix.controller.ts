@@ -7,6 +7,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { InvalidPixChargeInputError } from '../../../domain/orders/application/errors/invalid-pix-charge-input-error';
+import { InvalidChargeAmountError } from '../../../domain/orders/application/errors/invalid-charge-amount-error';
 import { OrderNotFoundError } from '../../../domain/orders/application/errors/order-not-found-error';
 import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
 import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
@@ -32,6 +33,7 @@ export class GenerateOrderPixController {
           throw new BadGatewayException(error.message);
         case PixGatewayUnavailableError:
           throw new BadGatewayException(error.message);
+        case InvalidChargeAmountError:
         case InvalidPixChargeInputError:
         default:
           throw new BadRequestException(error.message);
