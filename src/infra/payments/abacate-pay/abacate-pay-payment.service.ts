@@ -2,28 +2,40 @@ import {
   PaymentService,
   CreatePixChargeParams,
   CreatePixChargeResponse,
-} from '../../../domain/orders/application/services/payment-service'
-import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error'
-import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error'
-import { AbacatePayClient } from './abacate-pay-client'
+} from '../../../domain/orders/application/services/payment-service';
+import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
+import { InvalidPixChargeInputError } from '../../../domain/orders/application/errors/invalid-pix-charge-input-error';
+import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
+import { AbacatePayClient } from './abacate-pay-client';
 
 interface CreateTransparentPixResponse {
+  success?: boolean;
   data?: {
-    id?: unknown
-    brCode?: unknown
-    brCodeBase64?: unknown
-  } | null
+    id?: unknown;
+    brCode?: unknown;
+    brCodeBase64?: unknown;
+  } | null;
 }
 
 export class AbacatePayPaymentService extends PaymentService {
-  readonly provider = 'ABACATEPAY' as const
+  readonly provider = 'ABACATEPAY' as const;
 
   constructor(private readonly client: AbacatePayClient) {
-    super()
+    super();
   }
 
-  async createPixCharge({ orderId, amountInCents }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
-    let response: CreateTransparentPixResponse
+  async createPixCharge({
+    orderId,
+    amountInCents,
+  }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
+    // A API do AbacatePay exige ao menos R$ 1,00 para cobranças Pix.
+    if (amountInCents < 100) {
+      throw new InvalidPixChargeInputError(
+        'The minimum amount for AbacatePay is 100 cents.',
+      );
+    }
+
+    let response: CreateTransparentPixResponse;
 
     try {
       response = await this.client.post<CreateTransparentPixResponse>(
@@ -35,25 +47,32 @@ export class AbacatePayPaymentService extends PaymentService {
             externalId: orderId,
           },
         },
-      )
+      );
     } catch {
-      throw new PixGatewayUnavailableError()
+      throw new PixGatewayUnavailableError();
     }
 
-    const { id, brCode, brCodeBase64 } = response?.data ?? {}
+    if (!response || response.success === false) {
+      throw new PixGatewayUnavailableError();
+    }
+
+    const { id, brCode, brCodeBase64 } = response?.data ?? {};
 
     if (
-      typeof id !== 'string' || !id.trim() ||
-      typeof brCode !== 'string' || !brCode.trim() ||
-      typeof brCodeBase64 !== 'string' || !brCodeBase64.startsWith('data:image/')
+      typeof id !== 'string' ||
+      !id.trim() ||
+      typeof brCode !== 'string' ||
+      !brCode.trim() ||
+      typeof brCodeBase64 !== 'string' ||
+      !brCodeBase64.startsWith('data:image/')
     ) {
-      throw new InvalidPixGatewayResponseError()
+      throw new InvalidPixGatewayResponseError();
     }
 
     return {
       chargeId: id,
       pixCopyPaste: brCode,
       qrCodeDataUrl: brCodeBase64,
-    }
+    };
   }
 }

@@ -31,6 +31,23 @@
 $ pnpm install
 ```
 
+## Payment provider configuration
+
+Copy `.env.example` to `.env` and set `DATABASE_URL` and the API key for the provider you want to use. The default provider is AbacatePay:
+
+```env
+PAYMENT_PROVIDER=ABACATEPAY
+ABACATEPAY_API_KEY=your_development_or_production_key
+```
+
+To use Asaas, set `PAYMENT_PROVIDER=ASAAS`, provide `ASAAS_API_KEY` and a valid `ASAAS_CUSTOMER_ID`. `ASAAS_BASE_URL` defaults to the Sandbox API (`https://api-sandbox.asaas.com/v3`); set it to `https://api.asaas.com/v3` only when using a production key.
+
+The app requires a PostgreSQL connection in `DATABASE_URL`. Apply the checked-in migrations before serving requests:
+
+```bash
+pnpm exec prisma migrate deploy --config prisma7.config.ts
+```
+
 ## Compile and run the project
 
 ```bash

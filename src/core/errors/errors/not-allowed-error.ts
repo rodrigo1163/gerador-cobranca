@@ -1,7 +1,7 @@
-import { UseCaseError } from '#/core/errors/use-case-error.js'
+import { UseCaseError } from '../use-case-error.js';
 
 export class NotAllowedError extends Error implements UseCaseError {
-	constructor() {
-		super('Not allowed.')
-	}
+  constructor() {
+    super('Not allowed.');
+  }
 }

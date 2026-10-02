@@ -1,24 +1,29 @@
-import { Either, left, right } from '../../../../core/either'
-import { OrderChargeLinksRepository } from '../repositories/order-charge-links-repository'
-import { OrdersRepository } from '../repositories/orders-repository'
+import { Either, left, right } from '../../../../core/either';
+import { OrderChargeLinksRepository } from '../repositories/order-charge-links-repository';
+import { OrdersRepository } from '../repositories/orders-repository';
 import {
   PaymentService,
   CreatePixChargeResponse,
-} from '../services/payment-service'
-import { InvalidPixChargeInputError } from '../errors/invalid-pix-charge-input-error'
-import { OrderNotFoundError } from '../errors/order-not-found-error'
-import { OrderChargeLink } from '../../enterprise/entities/value-objects/order-charge-link'
+} from '../services/payment-service';
+import { InvalidPixChargeInputError } from '../errors/invalid-pix-charge-input-error';
+import { OrderNotFoundError } from '../errors/order-not-found-error';
+import { InvalidPixGatewayResponseError } from '../errors/invalid-pix-gateway-response-error';
+import { PixGatewayUnavailableError } from '../errors/pix-gateway-unavailable-error';
+import { OrderChargeLink } from '../../enterprise/entities/value-objects/order-charge-link';
 
 interface GenerateOrderPixUseCaseRequest {
-  orderId: string
+  orderId: string;
 }
 
 type GenerateOrderPixUseCaseResponse = Either<
-  OrderNotFoundError | InvalidPixChargeInputError,
+  | OrderNotFoundError
+  | InvalidPixChargeInputError
+  | InvalidPixGatewayResponseError
+  | PixGatewayUnavailableError,
   {
-    pixCharge: CreatePixChargeResponse
+    pixCharge: CreatePixChargeResponse;
   }
->
+>;
 
 export class GenerateOrderPixUseCase {
   constructor(
@@ -31,28 +36,42 @@ export class GenerateOrderPixUseCase {
     orderId,
   }: GenerateOrderPixUseCaseRequest): Promise<GenerateOrderPixUseCaseResponse> {
     if (!orderId.trim()) {
-      return left(new InvalidPixChargeInputError('Order id is required.'))
+      return left(new InvalidPixChargeInputError('Order id is required.'));
     }
 
-    const order = await this.ordersRepository.findById(orderId)
+    const order = await this.ordersRepository.findById(orderId);
 
     if (!order) {
-      return left(new OrderNotFoundError())
+      return left(new OrderNotFoundError());
     }
 
-    const pixCharge = await this.paymentService.createPixCharge({
-      orderId: order.id.toString(),
-      amountInCents: order.amountInCents,
-    })
+    let pixCharge: CreatePixChargeResponse;
+
+    try {
+      pixCharge = await this.paymentService.createPixCharge({
+        orderId: order.id.toString(),
+        amountInCents: order.amountInCents,
+      });
+    } catch (error) {
+      if (
+        error instanceof InvalidPixGatewayResponseError ||
+        error instanceof PixGatewayUnavailableError ||
+        error instanceof InvalidPixChargeInputError
+      ) {
+        return left(error);
+      }
+
+      throw error;
+    }
 
     const orderChargeLink = OrderChargeLink.create({
       orderId: order.id.toString(),
       chargeId: pixCharge.chargeId,
       provider: this.paymentService.provider,
-    })
+    });
 
-    await this.orderChargeLinksRepository.create(orderChargeLink)
+    await this.orderChargeLinksRepository.create(orderChargeLink);
 
-    return right({ pixCharge })
+    return right({ pixCharge });
   }
 }

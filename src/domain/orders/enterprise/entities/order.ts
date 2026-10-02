@@ -1,28 +1,29 @@
-import { Entity } from '../../../../core/entities/entity'
-import { UniqueEntityId } from '../../../../core/entities/unique-entity-id'
+import { Entity } from '../../../../core/entities/entity';
+import { UniqueEntityId } from '../../../../core/entities/unique-entity-id';
 
-export type OrderStatus = 'PENDING_PAYMENT'
+export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'EXPIRED' | 'CANCELED';
 
 export interface OrderProps {
-  amountInCents: number
-  status: OrderStatus
+  amountInCents: number;
+  status: OrderStatus;
 }
 
 export class Order extends Entity<OrderProps> {
   get amountInCents() {
-    return this.props.amountInCents
+    return this.props.amountInCents;
   }
 
   get status() {
-    return this.props.status
+    return this.props.status;
   }
 
   static create(
-    props: Pick<OrderProps, 'amountInCents'> & Partial<Pick<OrderProps, 'status'>>,
+    props: Pick<OrderProps, 'amountInCents'> &
+      Partial<Pick<OrderProps, 'status'>>,
     id?: UniqueEntityId,
   ) {
     if (!Number.isInteger(props.amountInCents) || props.amountInCents <= 0) {
-      throw new Error('Order amount must be a positive integer in cents.')
+      throw new Error('Order amount must be a positive integer in cents.');
     }
 
     return new Order(
@@ -31,6 +32,6 @@ export class Order extends Entity<OrderProps> {
         status: props.status ?? 'PENDING_PAYMENT',
       },
       id,
-    )
+    );
   }
 }
