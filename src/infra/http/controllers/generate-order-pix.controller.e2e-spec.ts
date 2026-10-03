@@ -110,6 +110,7 @@ describe('Generate order Pix with real gateways (E2E)', () => {
       { app: asaasApp, provider: 'ASAAS' },
       { app: abacateApp, provider: 'ABACATEPAY' },
     ] as const) {
+
       const orderId = randomUUID();
       await prisma.order.create({
         data: { id: orderId, amountInCents },
@@ -126,6 +127,7 @@ describe('Generate order Pix with real gateways (E2E)', () => {
       expect(Object.keys(response.body)).toEqual(['pixCharge']);
 
       const pixCharge = response.body.pixCharge as CreatePixChargeResponse;
+
       expect(Object.keys(pixCharge).sort()).toEqual([
         'chargeId',
         'pixCopyPaste',
