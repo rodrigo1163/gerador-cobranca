@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import jsQR from 'jsqr';
+import { PNG } from 'pngjs';
 import request from 'supertest';
 import { AppModule } from '../../../app.module';
 import type { CreatePixChargeResponse } from '../../../domain/orders/application/services/payment-service';
@@ -131,12 +133,33 @@ describe('Generate order Pix with real gateways (E2E)', () => {
       ]);
       expect(pixCharge.chargeId.trim()).not.toBe('');
       expect(pixCharge.pixCopyPaste.trim()).not.toBe('');
-      expect(pixCharge.qrCodeDataUrl).toMatch(
-        /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
+      const pngDataUrl = /^data:image\/png;base64,([A-Za-z0-9+/]+={0,2})$/.exec(
+        pixCharge.qrCodeDataUrl,
       );
       expect(
-        Buffer.from(pixCharge.qrCodeDataUrl.split(',')[1], 'base64').length,
-      ).toBeGreaterThan(0);
+        pngDataUrl,
+        `${provider}: expected a base64 PNG data URL`,
+      ).not.toBeNull();
+
+      const pngBytes = Buffer.from(pngDataUrl![1], 'base64');
+      const png = PNG.sync.read(pngBytes, {
+        checkCRC: true,
+      });
+      expect(png.data).toHaveLength(png.width * png.height * 4);
+
+      const decodedQr = jsQR(
+        new Uint8ClampedArray(png.data!),
+        png.width,
+        png.height,
+      );
+      expect(
+        decodedQr,
+        `${provider}: PNG does not contain a readable QR code`,
+      ).not.toBeNull();
+      expect(
+        decodedQr?.data,
+        `${provider}: QR code differs from copy-and-paste`,
+      ).toBe(pixCharge.pixCopyPaste);
 
       const link = await prisma.orderChargeLink.findUnique({
         where: { orderId },

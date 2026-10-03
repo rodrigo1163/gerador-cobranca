@@ -22,7 +22,7 @@ Backend Node.js/TypeScript com NestJS para gerar cobranças Pix de pedidos. O ca
 | Troca do gateway pela instância injetada | ✅ | `PaymentsModule` seleciona a implementação; atualmente usa Asaas. |
 | Contrato de entrada independente do gateway | ✅ | O controller e o caso de uso recebem apenas o ID do pedido. |
 | Mesmo formato de JSON de resposta para os dois gateways | ✅ | Ambos retornam `pixCharge` com os mesmos três campos. |
-| Validar PNG e provar que imagem e copia e cola representam a mesma cobrança | ❌ | Os testes só verificam prefixo de imagem e base64 não vazio. |
+| Validar PNG e provar que imagem e copia e cola representam a mesma cobrança | ✅ | O E2E lê o PNG com verificação de CRC, decodifica o QR Code e compara seu conteúdo com `pixCopyPaste` nos dois gateways. |
 | Timeout com resultado incerto, sem confirmação ou repetição automática | ❌ | Não há prazo de timeout nem teste desse comportamento. |
 | Testes HTTP controlados para sucesso, falha, timeout e JSON inválido em ambos | ❌ | Esses cenários ainda não têm testes controlados. |
 | Teste E2E com APIs de desenvolvimento/Sandbox | ✅ | Existe teste E2E para AbacatePay e Asaas; sua execução depende de banco, credenciais e acesso às APIs. |
