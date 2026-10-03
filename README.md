@@ -26,7 +26,7 @@ Backend Node.js/TypeScript com NestJS para gerar cobranças Pix de pedidos. O ca
 | Timeout com resultado incerto, sem confirmação ou repetição automática | ❌ | Não há prazo de timeout nem teste desse comportamento. |
 | Testes HTTP controlados para sucesso, falha, timeout e JSON inválido em ambos | ❌ | Esses cenários ainda não têm testes controlados. |
 | Teste E2E com APIs de desenvolvimento/Sandbox | ✅ | Existe teste E2E para AbacatePay e Asaas; sua execução depende de banco, credenciais e acesso às APIs. |
-| ADR com fronteira, alternativa e custo | ❌ | Ainda não há ADR no repositório. |
+| ADR com fronteira, alternativa e custo | ✅ | [ADR 0001](docs/adr/0001-fronteira-da-integracao-pix.md) registra a porta, as alternativas e os custos da integração. |
 
 ## Configuração
 
