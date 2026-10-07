@@ -620,6 +620,7 @@ export const OrderChargeLinkScalarFieldEnum = {
   orderId: 'orderId',
   chargeId: 'chargeId',
   provider: 'provider',
+  method: 'method',
   createdAt: 'createdAt'
 } as const
 
@@ -705,16 +706,30 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'PixProvider'
+ * Reference to a field of type 'PaymentProvider'
  */
-export type EnumPixProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PixProvider'>
+export type EnumPaymentProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProvider'>
     
 
 
 /**
- * Reference to a field of type 'PixProvider[]'
+ * Reference to a field of type 'PaymentProvider[]'
  */
-export type ListEnumPixProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PixProvider[]'>
+export type ListEnumPaymentProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProvider[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentMethod'
+ */
+export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentMethod[]'
+ */
+export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod[]'>
     
 
 

@@ -1,6 +1,6 @@
-# Gerador de cobrança Pix
+# Gerador de cobranças
 
-Backend Node.js/TypeScript com NestJS para gerar cobranças Pix de pedidos. O caso de uso depende de `PaymentService`; a implementação ativa é escolhida em `src/infra/payments/payments.module.ts`. Este projeto usa **AbacatePay e Asaas**. A escolha do Asaas no lugar de Delfinance é intencional, mas difere do enunciado original do desafio.
+Backend Node.js/TypeScript com NestJS para gerar cobranças Pix e boleto de pedidos. Os casos de uso dependem das portas `PixGateway` e `BoletoGateway`; as implementações são escolhidas em `src/infra/payments/payments.module.ts`. Atualmente, Pix usa **AbacatePay** e boleto usa **Asaas**. O projeto também mantém um adaptador Pix do Asaas para testes de substituição do gateway.
 
 ## Enunciado original do desafio
 
@@ -23,31 +23,33 @@ Antes de conectar os gateways, verifique que um fake da porta permite testar o c
 
 **Critério de conclusão do enunciado:** os dois gateways geram Pix de teste para pedidos e retornam o mesmo contrato, com imagem e copia e cola coerentes; só a instância injetada muda; os testes da regra permanecem intactos; testes controlados cobrem falhas sem fingir sucesso. Se faltar acesso a uma API, registre o bloqueio: o fake sozinho não conclui a etapa.
 
-> **Adaptações deste repositório:** usa PostgreSQL em vez de pedidos apenas em memória, recebe o valor em `POST /orders` em vez de fixá-lo no backend, representa o estado inicial como `PENDING_PAYMENT` e implementa Asaas no lugar de Delfinance. A tabela abaixo distingue o que foi implementado do que ainda falta.
+> **Adaptações deste repositório:** usa PostgreSQL em vez de pedidos apenas em memória, recebe o valor em `POST /orders` em vez de fixá-lo no backend, representa o estado inicial como `PENDING_PAYMENT`, implementa Asaas no lugar de Delfinance e acrescenta geração de boleto. A tabela abaixo distingue o que foi implementado do que ainda falta.
 
 ## Estado do desafio
 
 ✅ = implementado no código. ❌ = ausente ou ainda não demonstrado. A tabela considera Asaas como o segundo gateway escolhido para este projeto.
 
-| Item | Estado | Evidência ou pendência |
-| --- | :---: | --- |
-| Pedido com ID, valor em centavos e estado inicial de pagamento pendente | ✅ | `Order` começa em `PENDING_PAYMENT`. |
-| Persistência dos pedidos e definição do valor (adaptação do desafio) | ✅ | A aplicação usa PostgreSQL, com repositórios em memória nos testes. O valor é recebido em `amountInCents` no `POST /orders`; R$ 10,00 é usado nos testes. |
-| Porta de cobrança com saída `chargeId`, `pixCopyPaste` e `qrCodeDataUrl` | ✅ | `PaymentService` define o contrato comum. |
-| Porta com entrada somente `orderId` e `amountInCents` | ✅ | O cliente exigido pelo Asaas é criado dentro do adaptador. |
-| Erros próprios para entrada inválida, gateway indisponível e resposta inválida | ✅ | Há classes de erro da aplicação e tradução de erros nos adaptadores. |
-| `POST /orders/:orderId/pix` consulta o valor do pedido e grava cobrança e provedor | ✅ | `GenerateOrderPixUseCase` usa os repositórios e a porta injetada. |
-| Gerar Pix sem marcar o pedido como pago | ✅ | O caso de uso não altera o estado do pedido; o teste verifica `PENDING_PAYMENT`. |
-| Fake testa o caso de uso e impede integração para pedido inexistente ou ID vazio | ✅ | Testes unitários verificam que o fake não é chamado nesses casos. |
-| Valor inválido falha no caso de uso antes da integração | ✅ | Um pedido de 99 centavos retorna `InvalidChargeAmountError`; o teste confirma que o fake não é chamado e nenhum vínculo é criado. |
-| Adaptador AbacatePay para criação de Pix | ✅ | Usa `/v2/transparents/create` e mapeia `id`, `brCode` e `brCodeBase64`. |
-| Adaptador Asaas Sandbox para criação de Pix | ✅ | Cria pagamento Pix e consulta o QR Code; converte centavos para reais no adaptador. |
-| Troca do gateway pela instância injetada | ✅ | `PaymentsModule` seleciona a implementação; atualmente usa Asaas. |
-| Contrato de entrada independente do gateway | ✅ | O controller e o caso de uso recebem apenas o ID do pedido. |
-| Mesmo formato de JSON de resposta para os dois gateways | ✅ | Ambos retornam `pixCharge` com os mesmos três campos. |
-| Validar PNG e provar que imagem e copia e cola representam a mesma cobrança | ✅ | O E2E lê o PNG com verificação de CRC, decodifica o QR Code e compara seu conteúdo com `pixCopyPaste` nos dois gateways. |
-| Teste E2E com APIs de desenvolvimento/Sandbox | ✅ | Existe teste E2E para AbacatePay e Asaas; sua execução depende de banco, credenciais e acesso às APIs. |
-| ADR com fronteira, alternativa e custo | ✅ | [ADR 0001](docs/adr/0001-fronteira-da-integracao-pix.md) registra a porta, as alternativas e os custos da integração. |
+| Item                                                                               | Estado | Evidência ou pendência                                                                                                                                    |
+| ---------------------------------------------------------------------------------- | :----: | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pedido com ID, valor em centavos e estado inicial de pagamento pendente            |   ✅   | `Order` começa em `PENDING_PAYMENT`.                                                                                                                      |
+| Persistência dos pedidos e definição do valor (adaptação do desafio)               |   ✅   | A aplicação usa PostgreSQL, com repositórios em memória nos testes. O valor é recebido em `amountInCents` no `POST /orders`; R$ 10,00 é usado nos testes. |
+| Porta Pix com saída `chargeId`, `pixCopyPaste` e `qrCodeDataUrl`                   |   ✅   | `PixGateway` define o contrato comum.                                                                                                                     |
+| Porta Pix com entrada somente `orderId` e `amountInCents`                          |   ✅   | Os clientes HTTP são injetados nos adaptadores.                                                                                                           |
+| Erros próprios para entrada inválida, gateway indisponível e resposta inválida     |   ✅   | Há classes de erro da aplicação e tradução de erros nos adaptadores.                                                                                      |
+| `POST /orders/:orderId/pix` consulta o valor do pedido e grava cobrança e provedor |   ✅   | `GenerateOrderPixUseCase` usa os repositórios e a porta injetada.                                                                                         |
+| Gerar Pix sem marcar o pedido como pago                                            |   ✅   | O caso de uso não altera o estado do pedido; o teste verifica `PENDING_PAYMENT`.                                                                          |
+| Fake testa o caso de uso e impede integração para pedido inexistente ou ID vazio   |   ✅   | Testes unitários verificam que o fake não é chamado nesses casos.                                                                                         |
+| Valor inválido falha no caso de uso antes da integração                            |   ✅   | Um pedido de 99 centavos retorna `InvalidChargeAmountError`; o teste confirma que o fake não é chamado e nenhum vínculo é criado.                         |
+| Adaptador AbacatePay para criação de Pix                                           |   ✅   | Usa `/v2/transparents/create` e mapeia `id`, `brCode` e `brCodeBase64`.                                                                                   |
+| Adaptador Asaas Sandbox para criação de Pix                                        |   ✅   | Cria pagamento Pix e consulta o QR Code; converte centavos para reais no adaptador.                                                                       |
+| Troca do gateway pela instância injetada                                           |   ✅   | `PaymentsModule` associa `PixGateway` ao AbacatePay e permite substituí-lo pelo adaptador Asaas.                                                          |
+| Boleto via Asaas                                                                   |   ✅   | `BoletoGateway` é associado a `AsaasBoletoGateway`; a resposta normaliza linha digitável, código de barras, URL e vencimento.                             |
+| Gateways por método de pagamento                                                   |   ✅   | `PaymentsModule` mantém bindings independentes para Pix e boleto.                                                                                         |
+| Contrato de entrada independente do gateway                                        |   ✅   | O controller e o caso de uso recebem apenas o ID do pedido.                                                                                               |
+| Mesmo formato de JSON de resposta para os dois gateways                            |   ✅   | Ambos retornam `pixCharge` com os mesmos três campos.                                                                                                     |
+| Validar PNG e provar que imagem e copia e cola representam a mesma cobrança        |   ✅   | O E2E lê o PNG com verificação de CRC, decodifica o QR Code e compara seu conteúdo com `pixCopyPaste` nos dois gateways.                                  |
+| Teste E2E com APIs de desenvolvimento/Sandbox                                      |   ✅   | Existe teste E2E para AbacatePay e Asaas; sua execução depende de banco, credenciais e acesso às APIs.                                                    |
+| ADR com fronteira, alternativa e custo                                             |   ✅   | [ADR 0001](docs/adr/0001-fronteira-da-integracao-pix.md) registra a porta, as alternativas e os custos da integração.                                     |
 
 ## Configuração
 
@@ -63,7 +65,7 @@ cp .env.example .env
 
 Se usar um PostgreSQL próprio, dispense o comando `docker compose` e aponte `DATABASE_URL` para esse banco.
 
-2. Edite `.env`. Para o container do projeto, use `DATABASE_URL=postgresql://docker:docker@localhost:5432/gerador_cobranca`. Configure `ASAAS_API_KEY` com a chave de **Sandbox** para o gateway ativo e `ABACATEPAY_API_KEY` com a chave de **Dev mode** para usar o outro adaptador ou executar o E2E. `ASAAS_BASE_URL` deve apontar para `https://api-sandbox.asaas.com/v3`. O adaptador Asaas cria seu cliente de teste; `ASAAS_CUSTOMER_ID` não é necessário.
+2. Edite `.env`. Para o container do projeto, use `DATABASE_URL=postgresql://docker:docker@localhost:5432/gerador_cobranca`. Configure `ASAAS_API_KEY` com uma chave de **Sandbox** para o boleto e `ABACATEPAY_API_KEY` com uma chave de **Dev mode** para o Pix. `ASAAS_BASE_URL` deve apontar para `https://api-sandbox.asaas.com/v3`. `ASAAS_CUSTOMER_ID` é opcional; quando ausente, o adaptador cria um cliente de teste no Asaas.
 
 3. Gere o Prisma Client, aplique as migrações e inicie a API:
 
@@ -73,13 +75,14 @@ pnpm exec prisma migrate deploy --config prisma7.config.ts
 pnpm run start:dev
 ```
 
-A API atende em `http://localhost:3000` por padrão; `PORT` pode alterar a porta. A implementação ativa é `AsaasPaymentService` em `src/infra/payments/payments.module.ts`. Para usar AbacatePay, troque somente a classe associada a `PaymentService` nesse módulo e reinicie a API; controller, caso de uso e JSON não precisam mudar.
+A API atende em `http://localhost:3000` por padrão; `PORT` pode alterar a porta. Os bindings ativos em `PaymentsModule` são `PixGateway → AbacatePayPixGateway` e `BoletoGateway → AsaasBoletoGateway`. Para trocar um fornecedor, altere somente o `useClass` da porta correspondente e reinicie a API.
 
 ## Teste manual com cliente HTTP
 
 1. Crie um pedido de R$ 10,00 com `POST http://localhost:3000/orders` e corpo `{ "amountInCents": 1000 }`. Guarde o `order.id` da resposta.
-2. Gere o Pix com `POST http://localhost:3000/orders/<order.id>/pix` e corpo `{}`. O gateway usado é o selecionado em `PaymentsModule`.
-3. Confira `pixCharge.chargeId`, `pixCharge.pixCopyPaste` e `pixCharge.qrCodeDataUrl` na resposta. O pedido permanece `PENDING_PAYMENT`.
+2. Gere o Pix com `POST http://localhost:3000/orders/<order.id>/pix` e corpo `{}`.
+3. Gere o boleto com `POST http://localhost:3000/orders/<order.id>/boleto` e corpo `{ "dueDate": "AAAA-MM-DD" }`.
+4. Confira o contrato específico de cada método. O pedido permanece `PENDING_PAYMENT` porque criar uma cobrança não confirma pagamento.
 
 Exemplo com `curl` (substitua o UUID pelo `order.id` retornado na primeira chamada):
 
@@ -91,11 +94,15 @@ curl -X POST http://localhost:3000/orders \
 curl -X POST http://localhost:3000/orders/SEU_ORDER_ID/pix \
   -H 'Content-Type: application/json' \
   -d '{}'
+
+curl -X POST http://localhost:3000/orders/SEU_ORDER_ID/boleto \
+  -H 'Content-Type: application/json' \
+  -d '{"dueDate":"2099-01-15"}'
 ```
 
 ## Testes
 
-Os testes unitários usam fakes e não precisam das APIs externas. Para o E2E, crie `.env.test` a partir do exemplo e confira sua `DATABASE_URL`; mantenha as duas chaves de teste em `.env`. O E2E cria um schema temporário, aplica as migrações e chama os dois gateways reais; ele precisa de acesso às APIs e gera cobranças de teste.
+Os testes unitários usam fakes e respostas HTTP controladas, sem chamar APIs externas. Para o E2E de Pix, crie `.env.test` a partir do exemplo e confira sua `DATABASE_URL`; mantenha as duas chaves de teste em `.env`. O E2E cria um schema temporário, aplica as migrações e chama os dois gateways reais de Pix; ele precisa de acesso às APIs e gera cobranças de teste.
 
 ```bash
 pnpm test

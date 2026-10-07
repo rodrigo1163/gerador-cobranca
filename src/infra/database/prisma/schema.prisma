@@ -19,17 +19,22 @@ enum OrderStatus {
   CANCELED
 }
 
-enum PixProvider {
+enum PaymentProvider {
   ABACATEPAY
   DELFINANCE
   ASAAS
 }
 
+enum PaymentMethod {
+  PIX
+  BOLETO
+}
+
 model Order {
-  id            String           @id @db.Uuid
+  id            String            @id @db.Uuid
   amountInCents Int
-  status        OrderStatus      @default(PENDING_PAYMENT)
-  chargeLink    OrderChargeLink?
+  status        OrderStatus       @default(PENDING_PAYMENT)
+  chargeLinks   OrderChargeLink[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,14 +43,16 @@ model Order {
 }
 
 model OrderChargeLink {
-  orderId  String      @id @db.Uuid
+  orderId  String          @db.Uuid
   chargeId String
-  provider PixProvider
+  provider PaymentProvider
+  method   PaymentMethod
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
+  @@id([orderId, method])
   @@unique([provider, chargeId])
   @@map("order_charge_links")
 }

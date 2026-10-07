@@ -1,6 +1,6 @@
 # ADR 0001 — Fronteira da integração Pix e escolha dos provedores
 
-- **Status:** aceito
+- **Status:** superado pelo ADR 0002
 - **Data:** 2026-10-02
 
 ## Contexto
@@ -15,11 +15,11 @@ O caso de uso `GenerateOrderPixUseCase` valida o pedido, obtém `amountInCents` 
 
 ## Alternativas consideradas
 
-| Alternativa | Motivo para não adotá-la agora |
-| --- | --- |
-| Chamar as APIs diretamente no controller ou no caso de uso | Espalharia autenticação, formatos externos e tratamento de erros pela aplicação; trocar o provedor exigiria alterar o fluxo de pedidos. |
-| Implementar Delfinance como segundo adaptador | A escolha deste projeto foi Asaas Sandbox. Ela se afasta do provedor solicitado no enunciado original; cumprir esse requisito literalmente ainda exigiria um adaptador Delfinance e seus testes. |
-| Escolher o provedor por pedido ou tentar outro automaticamente após uma falha | Exigiria regras de roteamento e reconciliação de cobranças. Após uma falha de rede, o primeiro provedor pode ter criado a cobrança mesmo sem resposta; alternar ou repetir pode duplicá-la. |
+| Alternativa                                                                   | Motivo para não adotá-la agora                                                                                                                                                                   |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chamar as APIs diretamente no controller ou no caso de uso                    | Espalharia autenticação, formatos externos e tratamento de erros pela aplicação; trocar o provedor exigiria alterar o fluxo de pedidos.                                                          |
+| Implementar Delfinance como segundo adaptador                                 | A escolha deste projeto foi Asaas Sandbox. Ela se afasta do provedor solicitado no enunciado original; cumprir esse requisito literalmente ainda exigiria um adaptador Delfinance e seus testes. |
+| Escolher o provedor por pedido ou tentar outro automaticamente após uma falha | Exigiria regras de roteamento e reconciliação de cobranças. Após uma falha de rede, o primeiro provedor pode ter criado a cobrança mesmo sem resposta; alternar ou repetir pode duplicá-la.      |
 
 ## Custos e consequências
 

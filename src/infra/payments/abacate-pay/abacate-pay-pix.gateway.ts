@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { InvalidPixChargeInputError } from '../../../domain/orders/application/errors/invalid-pix-charge-input-error';
+import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
+import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
 import {
-  PaymentService,
   CreatePixChargeParams,
   CreatePixChargeResponse,
-} from '../../../domain/orders/application/services/payment-service';
-import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
-import { InvalidPixChargeInputError } from '../../../domain/orders/application/errors/invalid-pix-charge-input-error';
-import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
+  PixGateway,
+} from '../../../domain/orders/application/gateways/pix-gateway';
 import { AbacatePayClient } from './abacate-pay-client';
 
 interface CreateTransparentPixResponse {
@@ -19,15 +19,17 @@ interface CreateTransparentPixResponse {
 }
 
 @Injectable()
-export class AbacatePayPaymentService extends PaymentService {
+export class AbacatePayPixGateway extends PixGateway {
   readonly provider = 'ABACATEPAY' as const;
-  private readonly client = new AbacatePayClient();
 
-  async createPixCharge({
+  constructor(private readonly client: AbacatePayClient) {
+    super();
+  }
+
+  async createCharge({
     orderId,
     amountInCents,
   }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
-    // A API do AbacatePay exige ao menos R$ 1,00 para cobranças Pix.
     if (amountInCents < 100) {
       throw new InvalidPixChargeInputError(
         'The minimum amount for AbacatePay is 100 cents.',
@@ -55,7 +57,7 @@ export class AbacatePayPaymentService extends PaymentService {
       throw new PixGatewayUnavailableError();
     }
 
-    const { id, brCode, brCodeBase64 } = response?.data ?? {};
+    const { id, brCode, brCodeBase64 } = response.data ?? {};
 
     if (
       typeof id !== 'string' ||

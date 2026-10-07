@@ -27,14 +27,16 @@ export type AggregateOrderChargeLink = {
 export type OrderChargeLinkMinAggregateOutputType = {
   orderId: string | null
   chargeId: string | null
-  provider: $Enums.PixProvider | null
+  provider: $Enums.PaymentProvider | null
+  method: $Enums.PaymentMethod | null
   createdAt: Date | null
 }
 
 export type OrderChargeLinkMaxAggregateOutputType = {
   orderId: string | null
   chargeId: string | null
-  provider: $Enums.PixProvider | null
+  provider: $Enums.PaymentProvider | null
+  method: $Enums.PaymentMethod | null
   createdAt: Date | null
 }
 
@@ -42,6 +44,7 @@ export type OrderChargeLinkCountAggregateOutputType = {
   orderId: number
   chargeId: number
   provider: number
+  method: number
   createdAt: number
   _all: number
 }
@@ -51,6 +54,7 @@ export type OrderChargeLinkMinAggregateInputType = {
   orderId?: true
   chargeId?: true
   provider?: true
+  method?: true
   createdAt?: true
 }
 
@@ -58,6 +62,7 @@ export type OrderChargeLinkMaxAggregateInputType = {
   orderId?: true
   chargeId?: true
   provider?: true
+  method?: true
   createdAt?: true
 }
 
@@ -65,6 +70,7 @@ export type OrderChargeLinkCountAggregateInputType = {
   orderId?: true
   chargeId?: true
   provider?: true
+  method?: true
   createdAt?: true
   _all?: true
 }
@@ -144,7 +150,8 @@ export type OrderChargeLinkGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 export type OrderChargeLinkGroupByOutputType = {
   orderId: string
   chargeId: string
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
   createdAt: Date
   _count: OrderChargeLinkCountAggregateOutputType | null
   _min: OrderChargeLinkMinAggregateOutputType | null
@@ -172,7 +179,8 @@ export type OrderChargeLinkWhereInput = {
   NOT?: Prisma.OrderChargeLinkWhereInput | Prisma.OrderChargeLinkWhereInput[]
   orderId?: Prisma.UuidFilter<"OrderChargeLink"> | string
   chargeId?: Prisma.StringFilter<"OrderChargeLink"> | string
-  provider?: Prisma.EnumPixProviderFilter<"OrderChargeLink"> | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFilter<"OrderChargeLink"> | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFilter<"OrderChargeLink"> | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFilter<"OrderChargeLink"> | Date | string
   order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
 }
@@ -181,26 +189,30 @@ export type OrderChargeLinkOrderByWithRelationInput = {
   orderId?: Prisma.SortOrder
   chargeId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  method?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   order?: Prisma.OrderOrderByWithRelationInput
 }
 
 export type OrderChargeLinkWhereUniqueInput = Prisma.AtLeast<{
-  orderId?: string
   provider_chargeId?: Prisma.OrderChargeLinkProviderChargeIdCompoundUniqueInput
+  orderId_method?: Prisma.OrderChargeLinkOrderIdMethodCompoundUniqueInput
   AND?: Prisma.OrderChargeLinkWhereInput | Prisma.OrderChargeLinkWhereInput[]
   OR?: Prisma.OrderChargeLinkWhereInput[]
   NOT?: Prisma.OrderChargeLinkWhereInput | Prisma.OrderChargeLinkWhereInput[]
+  orderId?: Prisma.UuidFilter<"OrderChargeLink"> | string
   chargeId?: Prisma.StringFilter<"OrderChargeLink"> | string
-  provider?: Prisma.EnumPixProviderFilter<"OrderChargeLink"> | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFilter<"OrderChargeLink"> | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFilter<"OrderChargeLink"> | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFilter<"OrderChargeLink"> | Date | string
   order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
-}, "orderId" | "provider_chargeId">
+}, "orderId_method" | "provider_chargeId">
 
 export type OrderChargeLinkOrderByWithAggregationInput = {
   orderId?: Prisma.SortOrder
   chargeId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  method?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OrderChargeLinkCountOrderByAggregateInput
   _max?: Prisma.OrderChargeLinkMaxOrderByAggregateInput
@@ -213,72 +225,91 @@ export type OrderChargeLinkScalarWhereWithAggregatesInput = {
   NOT?: Prisma.OrderChargeLinkScalarWhereWithAggregatesInput | Prisma.OrderChargeLinkScalarWhereWithAggregatesInput[]
   orderId?: Prisma.UuidWithAggregatesFilter<"OrderChargeLink"> | string
   chargeId?: Prisma.StringWithAggregatesFilter<"OrderChargeLink"> | string
-  provider?: Prisma.EnumPixProviderWithAggregatesFilter<"OrderChargeLink"> | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderWithAggregatesFilter<"OrderChargeLink"> | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodWithAggregatesFilter<"OrderChargeLink"> | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OrderChargeLink"> | Date | string
 }
 
 export type OrderChargeLinkCreateInput = {
   chargeId: string
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
   createdAt?: Date | string
-  order: Prisma.OrderCreateNestedOneWithoutChargeLinkInput
+  order: Prisma.OrderCreateNestedOneWithoutChargeLinksInput
 }
 
 export type OrderChargeLinkUncheckedCreateInput = {
   orderId: string
   chargeId: string
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
   createdAt?: Date | string
 }
 
 export type OrderChargeLinkUpdateInput = {
   chargeId?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.EnumPixProviderFieldUpdateOperationsInput | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  order?: Prisma.OrderUpdateOneRequiredWithoutChargeLinkNestedInput
+  order?: Prisma.OrderUpdateOneRequiredWithoutChargeLinksNestedInput
 }
 
 export type OrderChargeLinkUncheckedUpdateInput = {
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
   chargeId?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.EnumPixProviderFieldUpdateOperationsInput | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderChargeLinkCreateManyInput = {
   orderId: string
   chargeId: string
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
   createdAt?: Date | string
 }
 
 export type OrderChargeLinkUpdateManyMutationInput = {
   chargeId?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.EnumPixProviderFieldUpdateOperationsInput | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderChargeLinkUncheckedUpdateManyInput = {
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
   chargeId?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.EnumPixProviderFieldUpdateOperationsInput | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type OrderChargeLinkNullableScalarRelationFilter = {
-  is?: Prisma.OrderChargeLinkWhereInput | null
-  isNot?: Prisma.OrderChargeLinkWhereInput | null
+export type OrderChargeLinkListRelationFilter = {
+  every?: Prisma.OrderChargeLinkWhereInput
+  some?: Prisma.OrderChargeLinkWhereInput
+  none?: Prisma.OrderChargeLinkWhereInput
+}
+
+export type OrderChargeLinkOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type OrderChargeLinkProviderChargeIdCompoundUniqueInput = {
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
   chargeId: string
+}
+
+export type OrderChargeLinkOrderIdMethodCompoundUniqueInput = {
+  orderId: string
+  method: $Enums.PaymentMethod
 }
 
 export type OrderChargeLinkCountOrderByAggregateInput = {
   orderId?: Prisma.SortOrder
   chargeId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  method?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -286,6 +317,7 @@ export type OrderChargeLinkMaxOrderByAggregateInput = {
   orderId?: Prisma.SortOrder
   chargeId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  method?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -293,54 +325,71 @@ export type OrderChargeLinkMinOrderByAggregateInput = {
   orderId?: Prisma.SortOrder
   chargeId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  method?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
-export type OrderChargeLinkCreateNestedOneWithoutOrderInput = {
-  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
-  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput
-  connect?: Prisma.OrderChargeLinkWhereUniqueInput
+export type OrderChargeLinkCreateNestedManyWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput> | Prisma.OrderChargeLinkCreateWithoutOrderInput[] | Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput | Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput[]
+  createMany?: Prisma.OrderChargeLinkCreateManyOrderInputEnvelope
+  connect?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
 }
 
-export type OrderChargeLinkUncheckedCreateNestedOneWithoutOrderInput = {
-  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
-  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput
-  connect?: Prisma.OrderChargeLinkWhereUniqueInput
+export type OrderChargeLinkUncheckedCreateNestedManyWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput> | Prisma.OrderChargeLinkCreateWithoutOrderInput[] | Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput | Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput[]
+  createMany?: Prisma.OrderChargeLinkCreateManyOrderInputEnvelope
+  connect?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
 }
 
-export type OrderChargeLinkUpdateOneWithoutOrderNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
-  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput
-  upsert?: Prisma.OrderChargeLinkUpsertWithoutOrderInput
-  disconnect?: Prisma.OrderChargeLinkWhereInput | boolean
-  delete?: Prisma.OrderChargeLinkWhereInput | boolean
-  connect?: Prisma.OrderChargeLinkWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderChargeLinkUpdateToOneWithWhereWithoutOrderInput, Prisma.OrderChargeLinkUpdateWithoutOrderInput>, Prisma.OrderChargeLinkUncheckedUpdateWithoutOrderInput>
+export type OrderChargeLinkUpdateManyWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput> | Prisma.OrderChargeLinkCreateWithoutOrderInput[] | Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput | Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput[]
+  upsert?: Prisma.OrderChargeLinkUpsertWithWhereUniqueWithoutOrderInput | Prisma.OrderChargeLinkUpsertWithWhereUniqueWithoutOrderInput[]
+  createMany?: Prisma.OrderChargeLinkCreateManyOrderInputEnvelope
+  set?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  disconnect?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  delete?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  connect?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  update?: Prisma.OrderChargeLinkUpdateWithWhereUniqueWithoutOrderInput | Prisma.OrderChargeLinkUpdateWithWhereUniqueWithoutOrderInput[]
+  updateMany?: Prisma.OrderChargeLinkUpdateManyWithWhereWithoutOrderInput | Prisma.OrderChargeLinkUpdateManyWithWhereWithoutOrderInput[]
+  deleteMany?: Prisma.OrderChargeLinkScalarWhereInput | Prisma.OrderChargeLinkScalarWhereInput[]
 }
 
-export type OrderChargeLinkUncheckedUpdateOneWithoutOrderNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
-  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput
-  upsert?: Prisma.OrderChargeLinkUpsertWithoutOrderInput
-  disconnect?: Prisma.OrderChargeLinkWhereInput | boolean
-  delete?: Prisma.OrderChargeLinkWhereInput | boolean
-  connect?: Prisma.OrderChargeLinkWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderChargeLinkUpdateToOneWithWhereWithoutOrderInput, Prisma.OrderChargeLinkUpdateWithoutOrderInput>, Prisma.OrderChargeLinkUncheckedUpdateWithoutOrderInput>
+export type OrderChargeLinkUncheckedUpdateManyWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput> | Prisma.OrderChargeLinkCreateWithoutOrderInput[] | Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput[]
+  connectOrCreate?: Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput | Prisma.OrderChargeLinkCreateOrConnectWithoutOrderInput[]
+  upsert?: Prisma.OrderChargeLinkUpsertWithWhereUniqueWithoutOrderInput | Prisma.OrderChargeLinkUpsertWithWhereUniqueWithoutOrderInput[]
+  createMany?: Prisma.OrderChargeLinkCreateManyOrderInputEnvelope
+  set?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  disconnect?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  delete?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  connect?: Prisma.OrderChargeLinkWhereUniqueInput | Prisma.OrderChargeLinkWhereUniqueInput[]
+  update?: Prisma.OrderChargeLinkUpdateWithWhereUniqueWithoutOrderInput | Prisma.OrderChargeLinkUpdateWithWhereUniqueWithoutOrderInput[]
+  updateMany?: Prisma.OrderChargeLinkUpdateManyWithWhereWithoutOrderInput | Prisma.OrderChargeLinkUpdateManyWithWhereWithoutOrderInput[]
+  deleteMany?: Prisma.OrderChargeLinkScalarWhereInput | Prisma.OrderChargeLinkScalarWhereInput[]
 }
 
-export type EnumPixProviderFieldUpdateOperationsInput = {
-  set?: $Enums.PixProvider
+export type EnumPaymentProviderFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentProvider
+}
+
+export type EnumPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentMethod
 }
 
 export type OrderChargeLinkCreateWithoutOrderInput = {
   chargeId: string
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
   createdAt?: Date | string
 }
 
 export type OrderChargeLinkUncheckedCreateWithoutOrderInput = {
   chargeId: string
-  provider: $Enums.PixProvider
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
   createdAt?: Date | string
 }
 
@@ -349,26 +398,63 @@ export type OrderChargeLinkCreateOrConnectWithoutOrderInput = {
   create: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
 }
 
-export type OrderChargeLinkUpsertWithoutOrderInput = {
-  update: Prisma.XOR<Prisma.OrderChargeLinkUpdateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedUpdateWithoutOrderInput>
-  create: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
-  where?: Prisma.OrderChargeLinkWhereInput
+export type OrderChargeLinkCreateManyOrderInputEnvelope = {
+  data: Prisma.OrderChargeLinkCreateManyOrderInput | Prisma.OrderChargeLinkCreateManyOrderInput[]
+  skipDuplicates?: boolean
 }
 
-export type OrderChargeLinkUpdateToOneWithWhereWithoutOrderInput = {
-  where?: Prisma.OrderChargeLinkWhereInput
+export type OrderChargeLinkUpsertWithWhereUniqueWithoutOrderInput = {
+  where: Prisma.OrderChargeLinkWhereUniqueInput
+  update: Prisma.XOR<Prisma.OrderChargeLinkUpdateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedUpdateWithoutOrderInput>
+  create: Prisma.XOR<Prisma.OrderChargeLinkCreateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedCreateWithoutOrderInput>
+}
+
+export type OrderChargeLinkUpdateWithWhereUniqueWithoutOrderInput = {
+  where: Prisma.OrderChargeLinkWhereUniqueInput
   data: Prisma.XOR<Prisma.OrderChargeLinkUpdateWithoutOrderInput, Prisma.OrderChargeLinkUncheckedUpdateWithoutOrderInput>
+}
+
+export type OrderChargeLinkUpdateManyWithWhereWithoutOrderInput = {
+  where: Prisma.OrderChargeLinkScalarWhereInput
+  data: Prisma.XOR<Prisma.OrderChargeLinkUpdateManyMutationInput, Prisma.OrderChargeLinkUncheckedUpdateManyWithoutOrderInput>
+}
+
+export type OrderChargeLinkScalarWhereInput = {
+  AND?: Prisma.OrderChargeLinkScalarWhereInput | Prisma.OrderChargeLinkScalarWhereInput[]
+  OR?: Prisma.OrderChargeLinkScalarWhereInput[]
+  NOT?: Prisma.OrderChargeLinkScalarWhereInput | Prisma.OrderChargeLinkScalarWhereInput[]
+  orderId?: Prisma.UuidFilter<"OrderChargeLink"> | string
+  chargeId?: Prisma.StringFilter<"OrderChargeLink"> | string
+  provider?: Prisma.EnumPaymentProviderFilter<"OrderChargeLink"> | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFilter<"OrderChargeLink"> | $Enums.PaymentMethod
+  createdAt?: Prisma.DateTimeFilter<"OrderChargeLink"> | Date | string
+}
+
+export type OrderChargeLinkCreateManyOrderInput = {
+  chargeId: string
+  provider: $Enums.PaymentProvider
+  method: $Enums.PaymentMethod
+  createdAt?: Date | string
 }
 
 export type OrderChargeLinkUpdateWithoutOrderInput = {
   chargeId?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.EnumPixProviderFieldUpdateOperationsInput | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderChargeLinkUncheckedUpdateWithoutOrderInput = {
   chargeId?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.EnumPixProviderFieldUpdateOperationsInput | $Enums.PixProvider
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type OrderChargeLinkUncheckedUpdateManyWithoutOrderInput = {
+  chargeId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -378,6 +464,7 @@ export type OrderChargeLinkSelect<ExtArgs extends runtime.Types.Extensions.Inter
   orderId?: boolean
   chargeId?: boolean
   provider?: boolean
+  method?: boolean
   createdAt?: boolean
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderChargeLink"]>
@@ -386,6 +473,7 @@ export type OrderChargeLinkSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   orderId?: boolean
   chargeId?: boolean
   provider?: boolean
+  method?: boolean
   createdAt?: boolean
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderChargeLink"]>
@@ -394,6 +482,7 @@ export type OrderChargeLinkSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   orderId?: boolean
   chargeId?: boolean
   provider?: boolean
+  method?: boolean
   createdAt?: boolean
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderChargeLink"]>
@@ -402,10 +491,11 @@ export type OrderChargeLinkSelectScalar = {
   orderId?: boolean
   chargeId?: boolean
   provider?: boolean
+  method?: boolean
   createdAt?: boolean
 }
 
-export type OrderChargeLinkOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"orderId" | "chargeId" | "provider" | "createdAt", ExtArgs["result"]["orderChargeLink"]>
+export type OrderChargeLinkOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"orderId" | "chargeId" | "provider" | "method" | "createdAt", ExtArgs["result"]["orderChargeLink"]>
 export type OrderChargeLinkInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
 }
@@ -424,7 +514,8 @@ export type $OrderChargeLinkPayload<ExtArgs extends runtime.Types.Extensions.Int
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     orderId: string
     chargeId: string
-    provider: $Enums.PixProvider
+    provider: $Enums.PaymentProvider
+    method: $Enums.PaymentMethod
     createdAt: Date
   }, ExtArgs["result"]["orderChargeLink"]>
   composites: {}
@@ -852,7 +943,8 @@ export interface Prisma__OrderChargeLinkClient<T, Null = never, ExtArgs extends 
 export interface OrderChargeLinkFieldRefs {
   readonly orderId: Prisma.FieldRef<"OrderChargeLink", 'String'>
   readonly chargeId: Prisma.FieldRef<"OrderChargeLink", 'String'>
-  readonly provider: Prisma.FieldRef<"OrderChargeLink", 'PixProvider'>
+  readonly provider: Prisma.FieldRef<"OrderChargeLink", 'PaymentProvider'>
+  readonly method: Prisma.FieldRef<"OrderChargeLink", 'PaymentMethod'>
   readonly createdAt: Prisma.FieldRef<"OrderChargeLink", 'DateTime'>
 }
     

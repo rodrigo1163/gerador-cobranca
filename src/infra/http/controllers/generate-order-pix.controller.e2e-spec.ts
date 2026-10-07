@@ -5,12 +5,12 @@ import jsQR from 'jsqr';
 import { PNG } from 'pngjs';
 import request from 'supertest';
 import { AppModule } from '../../../app.module';
-import type { CreatePixChargeResponse } from '../../../domain/orders/application/services/payment-service';
-import { PaymentService } from '../../../domain/orders/application/services/payment-service';
+import type { CreatePixChargeResponse } from '../../../domain/orders/application/gateways/pix-gateway';
+import { PixGateway } from '../../../domain/orders/application/gateways/pix-gateway';
 import { PrismaService } from '../../database/prisma/prisma.service';
-import { AbacatePayPaymentService } from '../../payments/abacate-pay/abacate-pay-payment.service';
+import { AbacatePayPixGateway } from '../../payments/abacate-pay/abacate-pay-pix.gateway';
 import { AsaasClient } from '../../payments/asaas/asaas-client';
-import { AsaasPaymentService } from '../../payments/asaas/asaas-payment.service';
+import { AsaasPixGateway } from '../../payments/asaas/asaas-pix.gateway';
 
 interface AsaasCustomer {
   id: string;
@@ -30,12 +30,12 @@ describe('Generate order Pix with real gateways (E2E)', () => {
   let prisma: PrismaService;
   let asaasCustomerId: string;
 
-  async function createApp(paymentService: Type<PaymentService>) {
+  async function createApp(pixGateway: Type<PixGateway>) {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(PaymentService)
-      .useClass(paymentService)
+      .overrideProvider(PixGateway)
+      .useClass(pixGateway)
       .compile();
 
     const app = moduleRef.createNestApplication();
@@ -81,7 +81,7 @@ describe('Generate order Pix with real gateways (E2E)', () => {
     }
     asaasCustomerId = customer.id;
 
-    const abacate = await createApp(AbacatePayPaymentService);
+    const abacate = await createApp(AbacatePayPixGateway);
     abacateApp = abacate.app;
     prisma = abacate.prisma;
 
@@ -89,7 +89,7 @@ describe('Generate order Pix with real gateways (E2E)', () => {
     process.env.ASAAS_CUSTOMER_ID = asaasCustomerId;
 
     try {
-      asaasApp = (await createApp(AsaasPaymentService)).app;
+      asaasApp = (await createApp(AsaasPixGateway)).app;
     } finally {
       if (previousCustomerId === undefined) {
         delete process.env.ASAAS_CUSTOMER_ID;
@@ -110,7 +110,6 @@ describe('Generate order Pix with real gateways (E2E)', () => {
       { app: asaasApp, provider: 'ASAAS' },
       { app: abacateApp, provider: 'ABACATEPAY' },
     ] as const) {
-
       const orderId = randomUUID();
       await prisma.order.create({
         data: { id: orderId, amountInCents },
@@ -124,9 +123,12 @@ describe('Generate order Pix with real gateways (E2E)', () => {
         response.status,
         `${provider}: ${JSON.stringify(response.body)}`,
       ).toBe(201);
-      expect(Object.keys(response.body)).toEqual(['pixCharge']);
+      const responseBody = response.body as unknown as {
+        pixCharge: CreatePixChargeResponse;
+      };
+      expect(Object.keys(responseBody)).toEqual(['pixCharge']);
 
-      const pixCharge = response.body.pixCharge as CreatePixChargeResponse;
+      const { pixCharge } = responseBody;
 
       expect(Object.keys(pixCharge).sort()).toEqual([
         'chargeId',
@@ -150,7 +152,7 @@ describe('Generate order Pix with real gateways (E2E)', () => {
       expect(png.data).toHaveLength(png.width * png.height * 4);
 
       const decodedQr = jsQR(
-        new Uint8ClampedArray(png.data!),
+        new Uint8ClampedArray(png.data),
         png.width,
         png.height,
       );
@@ -164,12 +166,13 @@ describe('Generate order Pix with real gateways (E2E)', () => {
       ).toBe(pixCharge.pixCopyPaste);
 
       const link = await prisma.orderChargeLink.findUnique({
-        where: { orderId },
+        where: { orderId_method: { orderId, method: 'PIX' } },
       });
       expect(link).toMatchObject({
         orderId,
         chargeId: pixCharge.chargeId,
         provider,
+        method: 'PIX',
       });
 
       charges.push(pixCharge);

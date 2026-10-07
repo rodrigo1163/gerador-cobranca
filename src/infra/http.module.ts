@@ -5,10 +5,20 @@ import { CreateOrderUseCase } from '../domain/orders/application/use-cases/creat
 import { GenerateOrderPixUseCase } from '../domain/orders/application/use-cases/generate-order-pix.use-case';
 import { DatabaseModule } from './database/database.module';
 import { PaymentsModule } from './payments/payments.module';
+import { GenerateOrderBoletoController } from './http/controllers/generate-order-boleto.controller';
+import { GenerateOrderBoletoUseCase } from '../domain/orders/application/use-cases/generate-order-boleto.use-case';
 
 @Module({
   imports: [DatabaseModule, PaymentsModule],
-  controllers: [CreateOrderController, GenerateOrderPixController],
-  providers: [CreateOrderUseCase, GenerateOrderPixUseCase],
+  controllers: [
+    CreateOrderController,
+    GenerateOrderPixController,
+    GenerateOrderBoletoController,
+  ],
+  providers: [
+    CreateOrderUseCase,
+    GenerateOrderPixUseCase,
+    GenerateOrderBoletoUseCase,
+  ],
 })
 export class HttpModule {}

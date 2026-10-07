@@ -86,6 +86,7 @@ export const OrderChargeLinkScalarFieldEnum = {
   orderId: 'orderId',
   chargeId: 'chargeId',
   provider: 'provider',
+  method: 'method',
   createdAt: 'createdAt'
 } as const
 

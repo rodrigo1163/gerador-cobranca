@@ -10,6 +10,7 @@ export class PrismaOrderChargeLinkMapper {
       orderId: raw.orderId,
       chargeId: raw.chargeId,
       provider: raw.provider,
+      method: raw.method,
     });
   }
 
@@ -20,6 +21,7 @@ export class PrismaOrderChargeLinkMapper {
       orderId: link.orderId,
       chargeId: link.chargeId,
       provider: link.provider,
+      method: link.method,
     };
   }
 }

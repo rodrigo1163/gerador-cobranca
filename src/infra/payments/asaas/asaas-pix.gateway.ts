@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
+import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
 import {
   CreatePixChargeParams,
   CreatePixChargeResponse,
-  PaymentService,
-} from '../../../domain/orders/application/services/payment-service';
+  PixGateway,
+} from '../../../domain/orders/application/gateways/pix-gateway';
 import { AsaasClient } from './asaas-client';
-import { InvalidPixGatewayResponseError } from '../../../domain/orders/application/errors/invalid-pix-gateway-response-error';
-import { PixGatewayUnavailableError } from '../../../domain/orders/application/errors/pix-gateway-unavailable-error';
 
 interface AsaasCustomerResponse {
   id: string;
@@ -22,11 +22,14 @@ interface AsaasPixQrCodeResponse {
 }
 
 @Injectable()
-export class AsaasPaymentService extends PaymentService {
+export class AsaasPixGateway extends PixGateway {
   readonly provider = 'ASAAS' as const;
-  private readonly client = new AsaasClient();
 
-  async createPixCharge({
+  constructor(private readonly client: AsaasClient) {
+    super();
+  }
+
+  async createCharge({
     orderId,
     amountInCents,
   }: CreatePixChargeParams): Promise<CreatePixChargeResponse> {
@@ -34,18 +37,13 @@ export class AsaasPaymentService extends PaymentService {
     let pix: AsaasPixQrCodeResponse;
 
     try {
-      const customerId = await this.createCustomer();
+      const customerId = await this.getCustomerId();
 
       payment = await this.client.post<AsaasPaymentResponse>('/payments', {
         customer: customerId,
         billingType: 'PIX',
         value: amountInCents / 100,
-        dueDate: new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'America/Sao_Paulo',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(new Date()),
+        dueDate: this.todayInSaoPaulo(),
         externalReference: orderId,
       });
 
@@ -80,17 +78,35 @@ export class AsaasPaymentService extends PaymentService {
     };
   }
 
-  private async createCustomer(): Promise<string> {
-    const customer = await this.client.post<AsaasCustomerResponse>('/customers', {
-      name: 'Teste E2E Gerador Cobranca',
-      cpfCnpj: '24971563792',
-      notificationDisabled: true,
-    });
+  private async getCustomerId(): Promise<string> {
+    const configuredCustomerId = process.env.ASAAS_CUSTOMER_ID?.trim();
+
+    if (configuredCustomerId) {
+      return configuredCustomerId;
+    }
+
+    const customer = await this.client.post<AsaasCustomerResponse>(
+      '/customers',
+      {
+        name: 'Teste E2E Gerador Cobranca',
+        cpfCnpj: '24971563792',
+        notificationDisabled: true,
+      },
+    );
 
     if (typeof customer?.id !== 'string' || !customer.id.trim()) {
       throw new InvalidPixGatewayResponseError();
     }
 
     return customer.id;
+  }
+
+  private todayInSaoPaulo(): string {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
   }
 }

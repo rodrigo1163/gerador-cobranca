@@ -1,4 +1,4 @@
-import type { CreatePixChargeResponse } from '../../../domain/orders/application/services/payment-service';
+import type { CreatePixChargeResponse } from '../../../domain/orders/application/gateways/pix-gateway';
 
 export class PixChargePresenter {
   static toHTTP(pixCharge: CreatePixChargeResponse) {

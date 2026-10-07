@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderChargeLinksRepository } from '../../../../domain/orders/application/repositories/order-charge-links-repository';
 import { OrderChargeLink } from '../../../../domain/orders/enterprise/entities/value-objects/order-charge-link';
+import { PaymentMethod } from '../../../../domain/orders/enterprise/entities/value-objects/payment';
 import { PrismaOrderChargeLinkMapper } from '../../../mappers/prisma-order-charge-link-mapper';
 import { PrismaService } from '../prisma.service';
 
@@ -14,9 +15,12 @@ export class PrismaChargeLinksRepository implements OrderChargeLinksRepository {
     });
   }
 
-  async findByOrderId(orderId: string): Promise<OrderChargeLink | null> {
+  async findByOrderAndMethod(
+    orderId: string,
+    method: PaymentMethod,
+  ): Promise<OrderChargeLink | null> {
     const link = await this.prisma.orderChargeLink.findUnique({
-      where: { orderId },
+      where: { orderId_method: { orderId, method } },
     });
 
     if (!link) return null;

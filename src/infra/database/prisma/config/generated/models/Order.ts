@@ -216,7 +216,7 @@ export type OrderWhereInput = {
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
-  chargeLink?: Prisma.XOR<Prisma.OrderChargeLinkNullableScalarRelationFilter, Prisma.OrderChargeLinkWhereInput> | null
+  chargeLinks?: Prisma.OrderChargeLinkListRelationFilter
 }
 
 export type OrderOrderByWithRelationInput = {
@@ -225,7 +225,7 @@ export type OrderOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  chargeLink?: Prisma.OrderChargeLinkOrderByWithRelationInput
+  chargeLinks?: Prisma.OrderChargeLinkOrderByRelationAggregateInput
 }
 
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -237,7 +237,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
-  chargeLink?: Prisma.XOR<Prisma.OrderChargeLinkNullableScalarRelationFilter, Prisma.OrderChargeLinkWhereInput> | null
+  chargeLinks?: Prisma.OrderChargeLinkListRelationFilter
 }, "id">
 
 export type OrderOrderByWithAggregationInput = {
@@ -270,7 +270,7 @@ export type OrderCreateInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  chargeLink?: Prisma.OrderChargeLinkCreateNestedOneWithoutOrderInput
+  chargeLinks?: Prisma.OrderChargeLinkCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
@@ -279,7 +279,7 @@ export type OrderUncheckedCreateInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  chargeLink?: Prisma.OrderChargeLinkUncheckedCreateNestedOneWithoutOrderInput
+  chargeLinks?: Prisma.OrderChargeLinkUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUpdateInput = {
@@ -288,7 +288,7 @@ export type OrderUpdateInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  chargeLink?: Prisma.OrderChargeLinkUpdateOneWithoutOrderNestedInput
+  chargeLinks?: Prisma.OrderChargeLinkUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
@@ -297,7 +297,7 @@ export type OrderUncheckedUpdateInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  chargeLink?: Prisma.OrderChargeLinkUncheckedUpdateOneWithoutOrderNestedInput
+  chargeLinks?: Prisma.OrderChargeLinkUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyInput = {
@@ -381,21 +381,21 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
-export type OrderCreateNestedOneWithoutChargeLinkInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinkInput, Prisma.OrderUncheckedCreateWithoutChargeLinkInput>
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutChargeLinkInput
+export type OrderCreateNestedOneWithoutChargeLinksInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinksInput, Prisma.OrderUncheckedCreateWithoutChargeLinksInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutChargeLinksInput
   connect?: Prisma.OrderWhereUniqueInput
 }
 
-export type OrderUpdateOneRequiredWithoutChargeLinkNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinkInput, Prisma.OrderUncheckedCreateWithoutChargeLinkInput>
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutChargeLinkInput
-  upsert?: Prisma.OrderUpsertWithoutChargeLinkInput
+export type OrderUpdateOneRequiredWithoutChargeLinksNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinksInput, Prisma.OrderUncheckedCreateWithoutChargeLinksInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutChargeLinksInput
+  upsert?: Prisma.OrderUpsertWithoutChargeLinksInput
   connect?: Prisma.OrderWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutChargeLinkInput, Prisma.OrderUpdateWithoutChargeLinkInput>, Prisma.OrderUncheckedUpdateWithoutChargeLinkInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutChargeLinksInput, Prisma.OrderUpdateWithoutChargeLinksInput>, Prisma.OrderUncheckedUpdateWithoutChargeLinksInput>
 }
 
-export type OrderCreateWithoutChargeLinkInput = {
+export type OrderCreateWithoutChargeLinksInput = {
   id: string
   amountInCents: number
   status?: $Enums.OrderStatus
@@ -403,7 +403,7 @@ export type OrderCreateWithoutChargeLinkInput = {
   updatedAt?: Date | string
 }
 
-export type OrderUncheckedCreateWithoutChargeLinkInput = {
+export type OrderUncheckedCreateWithoutChargeLinksInput = {
   id: string
   amountInCents: number
   status?: $Enums.OrderStatus
@@ -411,23 +411,23 @@ export type OrderUncheckedCreateWithoutChargeLinkInput = {
   updatedAt?: Date | string
 }
 
-export type OrderCreateOrConnectWithoutChargeLinkInput = {
+export type OrderCreateOrConnectWithoutChargeLinksInput = {
   where: Prisma.OrderWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinkInput, Prisma.OrderUncheckedCreateWithoutChargeLinkInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinksInput, Prisma.OrderUncheckedCreateWithoutChargeLinksInput>
 }
 
-export type OrderUpsertWithoutChargeLinkInput = {
-  update: Prisma.XOR<Prisma.OrderUpdateWithoutChargeLinkInput, Prisma.OrderUncheckedUpdateWithoutChargeLinkInput>
-  create: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinkInput, Prisma.OrderUncheckedCreateWithoutChargeLinkInput>
+export type OrderUpsertWithoutChargeLinksInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutChargeLinksInput, Prisma.OrderUncheckedUpdateWithoutChargeLinksInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutChargeLinksInput, Prisma.OrderUncheckedCreateWithoutChargeLinksInput>
   where?: Prisma.OrderWhereInput
 }
 
-export type OrderUpdateToOneWithWhereWithoutChargeLinkInput = {
+export type OrderUpdateToOneWithWhereWithoutChargeLinksInput = {
   where?: Prisma.OrderWhereInput
-  data: Prisma.XOR<Prisma.OrderUpdateWithoutChargeLinkInput, Prisma.OrderUncheckedUpdateWithoutChargeLinkInput>
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutChargeLinksInput, Prisma.OrderUncheckedUpdateWithoutChargeLinksInput>
 }
 
-export type OrderUpdateWithoutChargeLinkInput = {
+export type OrderUpdateWithoutChargeLinksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amountInCents?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -435,7 +435,7 @@ export type OrderUpdateWithoutChargeLinkInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type OrderUncheckedUpdateWithoutChargeLinkInput = {
+export type OrderUncheckedUpdateWithoutChargeLinksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amountInCents?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -443,6 +443,35 @@ export type OrderUncheckedUpdateWithoutChargeLinkInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type OrderCountOutputType
+ */
+
+export type OrderCountOutputType = {
+  chargeLinks: number
+}
+
+export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  chargeLinks?: boolean | OrderCountOutputTypeCountChargeLinksArgs
+}
+
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrderCountOutputType
+   */
+  select?: Prisma.OrderCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountChargeLinksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderChargeLinkWhereInput
+}
 
 
 export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -451,7 +480,8 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  chargeLink?: boolean | Prisma.Order$chargeLinkArgs<ExtArgs>
+  chargeLinks?: boolean | Prisma.Order$chargeLinksArgs<ExtArgs>
+  _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -480,7 +510,8 @@ export type OrderSelectScalar = {
 
 export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amountInCents" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  chargeLink?: boolean | Prisma.Order$chargeLinkArgs<ExtArgs>
+  chargeLinks?: boolean | Prisma.Order$chargeLinksArgs<ExtArgs>
+  _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -488,7 +519,7 @@ export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Order"
   objects: {
-    chargeLink: Prisma.$OrderChargeLinkPayload<ExtArgs> | null
+    chargeLinks: Prisma.$OrderChargeLinkPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -890,7 +921,7 @@ readonly fields: OrderFieldRefs;
  */
 export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  chargeLink<T extends Prisma.Order$chargeLinkArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$chargeLinkArgs<ExtArgs>>): Prisma.Prisma__OrderChargeLinkClient<runtime.Types.Result.GetResult<Prisma.$OrderChargeLinkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  chargeLinks<T extends Prisma.Order$chargeLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$chargeLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderChargeLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1318,9 +1349,9 @@ export type OrderDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
- * Order.chargeLink
+ * Order.chargeLinks
  */
-export type Order$chargeLinkArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Order$chargeLinksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the OrderChargeLink
    */
@@ -1334,6 +1365,11 @@ export type Order$chargeLinkArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.OrderChargeLinkInclude<ExtArgs> | null
   where?: Prisma.OrderChargeLinkWhereInput
+  orderBy?: Prisma.OrderChargeLinkOrderByWithRelationInput | Prisma.OrderChargeLinkOrderByWithRelationInput[]
+  cursor?: Prisma.OrderChargeLinkWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderChargeLinkScalarFieldEnum | Prisma.OrderChargeLinkScalarFieldEnum[]
 }
 
 /**

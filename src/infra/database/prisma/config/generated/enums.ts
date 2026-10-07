@@ -19,10 +19,18 @@ export const OrderStatus = {
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 
-export const PixProvider = {
+export const PaymentProvider = {
   ABACATEPAY: 'ABACATEPAY',
   DELFINANCE: 'DELFINANCE',
   ASAAS: 'ASAAS'
 } as const
 
-export type PixProvider = (typeof PixProvider)[keyof typeof PixProvider]
+export type PaymentProvider = (typeof PaymentProvider)[keyof typeof PaymentProvider]
+
+
+export const PaymentMethod = {
+  PIX: 'PIX',
+  BOLETO: 'BOLETO'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]

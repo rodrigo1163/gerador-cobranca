@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '../../../../core/either';
 import { OrderChargeLinksRepository } from '../repositories/order-charge-links-repository';
 import { OrdersRepository } from '../repositories/orders-repository';
-import {
-  PaymentService,
-  CreatePixChargeResponse,
-} from '../services/payment-service';
+import { CreatePixChargeResponse, PixGateway } from '../gateways/pix-gateway';
 import { InvalidPixChargeInputError } from '../errors/invalid-pix-charge-input-error';
 import { OrderNotFoundError } from '../errors/order-not-found-error';
 import { InvalidPixGatewayResponseError } from '../errors/invalid-pix-gateway-response-error';
@@ -33,8 +30,8 @@ export class GenerateOrderPixUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
     private orderChargeLinksRepository: OrderChargeLinksRepository,
-    private paymentService: PaymentService,
-  ) { }
+    private pixGateway: PixGateway,
+  ) {}
 
   async execute({
     orderId,
@@ -56,7 +53,7 @@ export class GenerateOrderPixUseCase {
     let pixCharge: CreatePixChargeResponse;
 
     try {
-      pixCharge = await this.paymentService.createPixCharge({
+      pixCharge = await this.pixGateway.createCharge({
         orderId: order.id.toString(),
         amountInCents: order.amountInCents,
       });
@@ -75,7 +72,8 @@ export class GenerateOrderPixUseCase {
     const orderChargeLink = OrderChargeLink.create({
       orderId: order.id.toString(),
       chargeId: pixCharge.chargeId,
-      provider: this.paymentService.provider,
+      provider: this.pixGateway.provider,
+      method: 'PIX',
     });
 
     await this.orderChargeLinksRepository.create(orderChargeLink);
